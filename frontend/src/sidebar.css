@@ -1,0 +1,161 @@
+/* This css file contains sidebar and history component styling  */
+
+/* sidebar */
+.sidebar {
+  width: 260px;
+  transition: width 0.3s ease, padding 0.3s ease;
+  background-color: #1a1a1a42;
+  backdrop-filter: blur(5px);
+  height: 100vh;
+  overflow: hidden;
+  color: var(--cs-white);
+  padding: 30px 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  z-index: 1000;
+}
+
+.sidebar.collapsed {
+  width: 65px;
+  padding: 30px 10px;
+}
+
+/* === SIDEBAR HEADER === */
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  transition: all 0.4s ease;
+}
+
+.sidebar-header img {
+  max-width: 150px;
+  transition: opacity 0.4s ease, transform 0.4s ease;
+  opacity: 1;
+}
+
+/* === MENU LIST === */
+.sidebar-menu,
+.profile_section {
+  list-style: none;
+  padding: 0;
+  margin: 2rem 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* === EACH ITEM === */
+.sidebar-menu li,
+.profile_section li {
+  display: flex;
+  align-items: center;
+  justify-content: start;
+  gap: 12px;
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid var(--cs-border);
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.sidebar-menu li:hover,
+.profile_section li:hover {
+  background-color: var(--cs-border)!important;
+}
+
+.icon {
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.label {
+  opacity: 1;
+  white-space: nowrap;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  transform: translateX(0);
+}
+
+.sidebar.collapsed .label {
+  opacity: 0;
+  transform: translateX(-10px);
+  pointer-events: none;
+}
+
+
+.sidebar.collapsed .sidebar-header{
+    justify-content: center;
+}
+
+.sidebar.collapsed .sidebar-header img {
+  opacity: 0;
+  transform: translateX(-10px);
+  pointer-events: none;
+}
+
+.sidebar.collapsed .sidebar-menu li{
+  justify-content: center;
+}
+
+.sidebar.collapsed .profile_section li{
+  justify-content: center;
+}
+
+/* === LOGIN MESSAGE TRANSITION === */
+.sidebar-login-message {
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.sidebar.collapsed .sidebar-login-message {
+  opacity: 0;
+  transform: translateX(-20px);
+  pointer-events: none;
+}
+
+
+/* History======================================================*/
+.history-panel {
+  position: fixed;
+  top: 0;
+  right: -300px; /* hidden off-screen */
+  width: 300px;
+  height: 100vh;
+  background-color: #171717;
+  box-shadow: -2px 0 10px rgba(0, 0, 0, 0.3);
+  transition: right 0.3s ease;
+  z-index: 1040; /* on top of sidebar */
+  padding: 30px;
+  overflow-y: auto;
+}
+
+/* When history panel is open */
+.history-panel.open {
+  right: 0;
+}
+
+.chat_return {
+  background-color: var(--cs-primary)!important;
+  padding: 10px 30px!important;
+  color: var(--cs-black)!important;
+  font-weight: 500!important;
+  border-radius: 10px!important;
+  border: none!important;
+}
+
+.chat_label{
+   color: var(--cs-black)!important;
+}
+
+.cicon{
+  color: var(--cs-black)!important;
+}
+
+.chat_return:hover .chat_label{
+color: var(--cs-white)!important;
+}
+
+.chat_return:hover .cicon{
+color: var(--cs-white)!important;
+}

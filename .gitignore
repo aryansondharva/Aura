@@ -1,0 +1,97 @@
+# Dependencies
+node_modules/
+.pnp/
+.pnp.js
+
+# Environment files (IMPORTANT - contains API keys and secrets)
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.env
+backend-js/.env
+frontend/.env
+ai-engine/.env
+env_files.txt
+
+# Build outputs
+dist/
+build/
+out/
+.next/
+.nuxt/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+*.so
+.venv/
+venv/
+ENV/
+env/
+ai-engine/.venv/
+
+# IDE and editors
+.idea/
+.vscode/
+*.swp
+*.swo
+*.sublime-workspace
+*.sublime-project
+.project
+.classpath
+.settings/
+
+# OS files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Test coverage
+coverage/
+.nyc_output/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.temp
+
+# Uploads (user uploaded files)
+backend-js/uploads/
+uploads/
+
+# Model files
+*.pkl
+*.pickle
+model.json
+backend-js/model.json
+
+# Database files
+*.sqlite
+*.sqlite3
+*.db
+
+# Kiro specs (optional - remove if you want to track specs)
+# .kiro/
+
+# Misc
+*.bak
+*.backup
+.cache/

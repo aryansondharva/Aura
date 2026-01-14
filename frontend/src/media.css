@@ -1,0 +1,171 @@
+:root {
+  /* RESPONSIVE BREAKPOINTS */
+  --breakpoint-xs: 575px;
+  --breakpoint-sm: 767px;
+  --breakpoint-md: 991px;
+  --breakpoint-lg: 1199px;
+  
+  /* RESPONSIVE FONT SIZES */
+  --font-size-h1-lg: 50px;
+  --font-size-h1-md: 60px;
+  --font-size-h1-sm: 40px;
+  --font-size-h1-xs: 50px;
+  --font-size-h2-sm: 38px;
+  --font-size-h3-sm: 20px;
+  --font-size-h4-sm: 25px;
+  --font-size-btn-xs: 12px;
+  
+  /* RESPONSIVE WIDTHS */
+  --width-chat-md: 80%;
+  --width-chat-xs: 90%;
+  --width-todo-xs: 90%;
+  
+  /* RESPONSIVE HEIGHTS */
+  --height-hero-sm: 70vh;
+  --height-banner-sm: 100vh;
+  
+  /* RESPONSIVE PADDING */
+  --padding-chat-md: 15px;
+  --padding-sidebar-collapsed: 0;
+  
+  /* RESPONSIVE MARGINS */
+  --margin-navbar-md: 20px;
+  --margin-todo-xs: 30px;
+  --margin-hero-button-xs: 0 0 20px 0px;
+  
+  /* RESPONSIVE POSITIONING */
+  --z-sidebar: 1040;
+}
+
+/* ========== RESPONSIVE MEDIA QUERIES ========== */
+
+/* Large screens and below (≤1199px) */
+@media (max-width: 1199px) {
+  h1 {
+    font-size: var(--font-size-h1-lg) !important;
+    font-weight: var(--font-weight-extra-bold);
+  }
+
+  .hero_content h1 {
+    width: var(--width-full);
+  }
+
+  .chat-input-section {
+    width: var(--width-full);
+    margin: auto;
+  }
+}
+
+/* Medium screens and below (≤991px) */
+@media (max-width: 991px) {
+  .header-btn {
+    display: none;
+  }
+
+  .navbar-collapse {
+    align-items: center;
+    margin-top: var(--margin-navbar-md);
+  }
+
+  .chatinterface {
+    flex: 1;
+    padding: var(--padding-chat-md);
+  }
+
+  .chat-response {
+    width: var(--width-chat-md);
+  }
+
+  .arch_grp {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-base);
+  }
+
+  .rbc3 {
+    width: var(--width-full);
+  }
+}
+
+/* Small screens and below (≤767px) */
+@media (max-width: 767px) {
+  h1 {
+    font-size: var(--font-size-h1-sm) !important;
+  }
+
+  .hero_content p {
+    width: var(--width-full);
+  }
+
+  .sidebar-area {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: var(--width-full);
+    z-index: var(--z-sidebar);
+  }
+
+  .sidebar.collapsed {
+    width: 0 !important;
+    padding: var(--padding-sidebar-collapsed) !important;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .banner .row {
+    height: var(--height-banner-sm) !important;
+  }
+
+  .hero .row {
+    height: var(--height-hero-sm);
+  }
+  
+  h1 {
+    font-size: var(--font-size-h1-md) !important;
+  }
+  
+  h2 {
+    font-size: var(--font-size-h2-sm) !important;
+  }
+  
+  h3 {
+    font-size: var(--font-size-h3-sm) !important;
+  }
+  
+  h4 {
+    font-size: var(--font-size-h4-sm) !important;
+  }
+}
+
+/* Extra small screens and below (≤575px) */
+@media (max-width: 575px) {
+  .chat-response {
+    width: var(--width-chat-xs);
+  }
+
+  .draggercard {
+    flex-direction: column;
+  }
+
+  .todocard {
+    width: var(--width-todo-xs) !important;
+    margin-top: var(--margin-todo-xs);
+    margin-bottom: 0px;
+    margin: auto;
+  }
+
+  .btn-otl {
+    font-size: var(--font-size-btn-xs);
+  }
+
+  h1 {
+    font-size: var(--font-size-h1-xs) !important;
+  }
+}
+
+/* Ultra small screens (≤381px) */
+@media (max-width: 381px) {
+  .hero_button a {
+    margin: var(--margin-hero-button-xs);
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "name": "recallo-teapot410",
+  "version": "1.0.1",
+  "private": true,
+  "scripts": {
+    "setup:frontend": "cd frontend && npm install && echo VITE_SUPABASE_URL=\"ENTER_YOUR_SUPABASE_URL\" > .env && echo VITE_SUPABASE_KEY=\"ENTER_YOUR_SUPABASE_KEY\" >> .env && echo OPENROUTER_API_KEY=\"ENTER_YOUR_OPENROUTER_KEY\" >> .env && echo GEMINI_API_KEY=\"ENTER_YOUR_GEMINI_KEY\" >> .env && echo GROQ_API_KEY=\"ENTER_YOUR_GROQ_KEY\" >> .env && echo VITE_BACKEND_URL=\"ENTER_BACKEND_URL\" >> .env && echo VITE_FRONTEND_URL=\"ENTER_FRONTEND_URL\" >> .env && echo VITE_FRONTEND_DEV=\"http://localhost:5173\" >> .env",
+    "setup:backend": "cd ai-engine && echo SUPABASE_URL=\"ENTER_YOUR_SUPABASE_URL\" > .env && echo SUPABASE_KEY=\"ENTER_YOUR_SUPABASE_KEY\" >> .env && echo OPENROUTER_API_KEY=\"ENTER_YOUR_OPENROUTER_KEY\" >> .env && echo GEMINI_API_KEY=\"ENTER_YOUR_GEMINI_KEY\" >> .env && echo PINECONE_API_KEY=\"ENTER_YOUR_PINECONE_KEY\" >> .env && echo GROQ_API_KEY=\"ENTER_YOUR_GROQ_KEY\" >> .env && echo GMAIL_USER=\"ENTER_GMAIL_USER\" >> .env && echo GMAIL_APP_PASSWORD=\"ENTER_GMAIL_APP_PASSWORD\" >> .env && echo FRONTEND_URL=\"http://localhost:5173\" >> .env && echo FRONTEND_PROD=\"ENTER_FRONTEND_PROD_URL\" >> .env",
+    "setup:venv": "cd ai-engine && python -m venv .venv && .venv\\Scripts\\activate && pip install -r requirements.txt",
+    "setup": "npm run setup:frontend && npm run setup:backend && npm run setup:venv"
+  },
+  "dependencies": {
+    "cross-env": "^10.1.0"
+  }
+}
