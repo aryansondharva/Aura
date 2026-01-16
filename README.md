@@ -1,8 +1,8 @@
 <div align="center">
 
-<img src="./frontend/public/aura-logo.png" alt="Aura Logo" width="150" />
+<img src="./frontend/src/assets/recallo.png" alt="Aura Logo" width="150" />
 
-# 📚 Aura
+#  
 
 **AI-powered spaced repetition platform that helps students retain information through intelligent quiz generation and personalized learning schedules.**
 
@@ -20,9 +20,7 @@ Aura combines AI and spaced repetition science to help students learn smarter, n
 
 ## 🖼️ Screenshots
 
-<!-- Add your screenshots here -->
-<!-- ![Dashboard](./screenshots/dashboard.png) -->
-<!-- ![Quiz Interface](./screenshots/quiz.png) -->
+![Aura Banner](./frontend/src/assets/recallo_banner.webp)
 
 ## 🛠️ Tech Stack
 
@@ -82,15 +80,16 @@ cd backend-js && npm run dev
 Aura/
 ├── frontend/          # React + Vite frontend
 ├── backend-js/        # Node.js/Express API server
-├── ai-engine/         # Python ML/NLP engine
-└── .kiro/             # Spec-driven development docs
+└── ai-engine/         # Python ML/NLP 
+ 
 ```
 
 ## 👥 Built By
 
 <!-- Add your team members here -->
-- **Your Name** - [GitHub](https://github.com/yourusername)
+- **Aryan Sondharva** - [GitHub](https://github.com/aryansondharva)
+
 
 ---
 
-*Built for [Hackathon Name] 2026*
+*Built for RedBrick Hacks III 2026*
