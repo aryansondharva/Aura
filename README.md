@@ -1,71 +1,96 @@
-# 📚 Aura: AI-Driven Spaced Repetition & Recall Booster for Academic Success
-Version: 1.0.1
-Aura is an intelligent platform that leverages AI and the science of spaced repetition to help students retain and recall information effectively. This monorepo contains the complete frontend, backend, and AI engine setup.
+<div align="center">
 
-## 🚀 Quick Start Guide
+<img src="./frontend/public/aura-logo.png" alt="Aura Logo" width="150" />
 
-1️⃣ Clone the Repository
+# 📚 Aura
 
+**AI-powered spaced repetition platform that helps students retain information through intelligent quiz generation and personalized learning schedules.**
+
+![Version](https://img.shields.io/badge/version-1.0.1-blue)
+![License](https://img.shields.io/badge/license-ISC-green)
+
+</div>
+
+## 🎯 What is Aura?
+
+Aura combines AI and spaced repetition science to help students learn smarter, not harder. Upload your study materials, and Aura will:
+- Generate intelligent quizzes from your content
+- Schedule reviews at optimal intervals for memory retention
+- Track your progress and adapt to your learning patterns
+
+## 🖼️ Screenshots
+
+<!-- Add your screenshots here -->
+<!-- ![Dashboard](./screenshots/dashboard.png) -->
+<!-- ![Quiz Interface](./screenshots/quiz.png) -->
+
+## 🛠️ Tech Stack
+
+| Layer | Technologies |
+|-------|-------------|
+| **Frontend** | React 19, Vite, TailwindCSS, Framer Motion, Three.js |
+| **Backend** | Node.js, Express, LangChain |
+| **AI/ML** | Gemini, Groq, OpenRouter, Pinecone (vector DB) |
+| **Database** | Supabase (PostgreSQL + Auth) |
+| **AI Engine** | Python, Flask |
+
+## 🚀 Quick Start
+
+### Prerequisites
+- Node.js v16+
+- Python 3.8+
+- npm or yarn
+
+### 1. Clone & Setup
 ```bash
 git clone https://github.com/your-username/Aura.git
 cd Aura
-```
-
-2️⃣ Run the Setup Script
-
-```python
 npm run setup
 ```
 
-## 🧠 VS Code Python Interpreter Setup
+### 2. Configure Environment
+After setup, edit the `.env` files with your API keys:
 
-If you're using VS Code and Python extension must be installed, do the following to activate the virtual environment:
-
-1. Press Ctrl + Shift + P to open Command Palette
-
-2. Type: Python: Select Interpreter
-
-3. Choose: Enter Interpreter Path
-
-4. Click Find...
-
-5. Navigate to:
-
-```python
-Aura/ai-engine/.venv/Scripts/python.exe
-```
-6. Click Select Interpreter
-7. ✅ You’re all set! VS Code will now use the correct environment.
-
-
-## 🔐 .env Configuration
-
-After npm run setup, a .env file will be created in the root directory.
-You must replace the placeholders with your actual credentials:
-```python
+```env
+# Required API Keys
 VITE_SUPABASE_URL=your_supabase_url
 VITE_SUPABASE_KEY=your_supabase_key
 GEMINI_API_KEY=your_gemini_api_key
 OPENROUTER_API_KEY=your_openrouter_api_key
-GROQ_API_KEY==your_groq_api_key
+GROQ_API_KEY=your_groq_api_key
 ```
 
-## 💻 How to Run the Application
-1. API keys
-```python
-copy the frontend and backend API key from the env_files.txt and paste them into the correct place.
-```
-2. Start the frontend
-```python
-cd frontend
-npm run dev
-```
-3.  Run the Backend Server
-```python
-cd backend
-python app.py
+### 3. Run the Application
+
+**Terminal 1 - Frontend:**
+```bash
+cd frontend && npm run dev
 ```
 
-## ✅ Everything Ready?
-Your Aura AI platform should now be running and accessible locally.
-Use it to boost memory retention, improve academic performance, and learn smarter — not harder.
+**Terminal 2 - Backend:**
+```bash
+cd backend-js && npm run dev
+```
+
+### 4. Access the App
+- Frontend: http://localhost:5173
+- Backend API: http://localhost:3000
+
+## 📁 Project Structure
+
+```
+Aura/
+├── frontend/          # React + Vite frontend
+├── backend-js/        # Node.js/Express API server
+├── ai-engine/         # Python ML/NLP engine
+└── .kiro/             # Spec-driven development docs
+```
+
+## 👥 Built By
+
+<!-- Add your team members here -->
+- **Your Name** - [GitHub](https://github.com/yourusername)
+
+---
+
+*Built for [Hackathon Name] 2026*

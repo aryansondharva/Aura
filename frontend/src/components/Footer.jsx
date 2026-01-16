@@ -10,8 +10,8 @@ const Footer = () => {
             <p className="text-white ovr mt-3 mb-2 ">
               Your journey matters. Reach out anytime
             </p>
-            <a href="mailto:aura.ai@gmail.com">
-              <h2 className="grad_text mb-5">aura.ai@gmail.com</h2>
+            <a href="mailto:study.aura.ai@gmail.com">
+              <h2 className="grad_text mb-5">study.aura.ai@gmail.com</h2>
             </a>
           </div>
         </div>

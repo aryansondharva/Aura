@@ -45,7 +45,7 @@ const Developers = () => {
         <div className="row align-items-center g-5 pb-5">
           <div className="col-md-12 text-center about_section p-0">
             <h3 className="grad_text"> Developers</h3>
-            <h2 className="mb-2 mt-2">Group Name: Teapot 410</h2>
+            <h2 className="mb-2 mt-2">Group Name: TechAssasin</h2>
           </div>
         </div>
         <div className="row g-4">
@@ -53,12 +53,12 @@ const Developers = () => {
           <div className="col-md-4">
             <div className="ft_box dev_box">
               <img src={ziad} alt="aura_logo" className="img-fluid rbc" />
-              <h4>Wahidul Islam Ziad</h4>
+              <h4>ARYAN SONDHARVA</h4>
               <p>
                 Email:{" "}
-                <a href="mailto:wahidul.islam.ziad@gmail.com">
+                <a href="mailto:aryansondharva25@gmail.com">
                   <span className="grad_text">
-                    wahidul.islam.ziad@gmail.com
+                    aryansondharva25@gmail.com
                   </span>
                 </a>
               </p>
@@ -99,11 +99,11 @@ const Developers = () => {
           <div className="col-md-4">
             <div className="ft_box dev_box">
               <img src={galib} alt="aura_logo" className="img-fluid rbc" />
-              <h4>Abdur Rahman Galib</h4>
+              <h4>ARYAN SONDHARVA</h4>
               <p>
                 Email:{" "}
-                <a href="mailto:abdur.galib@northsouth.edu">
-                  <span className="grad_text">abdur.galib@northsouth.edu</span>
+                <a href="mailto:aryansondharva25@gmail.com">
+                  <span className="grad_text">aryansondharva25@gmail.com</span>
                 </a>
               </p>
               {/* <p>ID: 2231208642</p> */}
@@ -138,12 +138,12 @@ const Developers = () => {
           <div className="col-md-4">
             <div className="ft_box dev_box">
               <img src={faruq} alt="aura_logo" className="img-fluid rbc" />
-              <h4>Omor Faruq</h4>
+              <h4>ARYAN SONDHARVA</h4>
               <p>
                 Email:{" "}
-                <a href="mailto:mohammed.faruq@northsouth.edu">
+                <a href="mailto:aryansondharva@gmail.com">
                   <span className="grad_text">
-                    mohammed.faruq@northsouth.edu
+                    aryansondharva25@gmail.com
                   </span>
                 </a>
               </p>
