@@ -84,9 +84,8 @@ Aura/
 
 <!-- Add your team members here -->
 - **Aryan Sondharva** - [GitHub](https://github.com/aryansondharva)
-- **Shrey Kansara** - [GitHub](https://github.com/shrey7829)
 
 
 ---
 
-*Built for RedBrick Hacks III 2026*
+*Built for Dev Heat Hackathon*
