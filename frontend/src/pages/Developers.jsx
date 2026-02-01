@@ -33,8 +33,27 @@ const Developers = () => {
             <h2 className="mb-2 mt-2">Group Name: TechAssasin</h2>
           </div>
         </div>
+
+      
+
         <div className="row g-4 justify-content-center">
           {/* Developer 1 */}
+          <div className="col-md-4">
+            <div className="ft_box dev_box">
+              <img src={faruq} alt="developer" className="img-fluid rbc" />
+              <h4>HETVI LAD</h4>
+              <p>
+                Email:{" "}
+                <a href="mailto:hlad.2317@gmail.com">
+                  <span className="grad_text">
+                    hlad.2317@gmail.com
+                  </span>
+                </a>
+              </p>
+            </div>
+          </div>
+
+          {/* Developer 2 */}
           <div className="col-md-4">
             <div className="ft_box dev_box">
               <img src={aryan} alt="aura_logo" className="img-fluid rbc" />
@@ -50,7 +69,7 @@ const Developers = () => {
             </div>
           </div>
 
-          {/* Developer 2 */}
+          {/* Developer 3 */}
           <div className="col-md-4">
             <div className="ft_box dev_box">
               <img src={faruq} alt="aura_logo" className="img-fluid rbc" />
@@ -59,7 +78,7 @@ const Developers = () => {
                 Email:{" "}
                 <a href="mailto:shrey7829@gmail.com">
                   <span className="grad_text">
-                    shrey7829@gmail.com
+                  shrey7829@gmail.com
                   </span>
                 </a>
               </p>
