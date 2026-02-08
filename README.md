@@ -88,4 +88,4 @@ Aura/
 
 ---
 
-*Built for Dev Heat Hackathon*
+*Powered by Aura. Across the Web.*
