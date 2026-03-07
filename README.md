@@ -99,7 +99,7 @@ Aura/
 
 **⭐ Star this repo if you find it helpful!**
 
-Made with ❤️ by TechAssasin
+Made with ❤️ by Tech Assassin
 
 </div>
 
