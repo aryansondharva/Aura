@@ -2,23 +2,40 @@
 
 <img src="./frontend/src/assets/recallo.png" alt="Aura Logo" width="150" />
 
-#  
+# 📚 Aura
 
 **AI-powered spaced repetition platform that helps students retain information through intelligent quiz generation and personalized learning schedules.**
 
 ![Version](https://img.shields.io/badge/version-1.0.1-blue)
 ![License](https://img.shields.io/badge/license-ISC-green)
+![Node](https://img.shields.io/badge/node-%3E%3D16.0.0-brightgreen)
+![React](https://img.shields.io/badge/react-19.1.0-blue)
+
+[Live Demo](https://your-vercel-url.vercel.app) • [Report Bug](https://github.com/aryansondharva/Aura/issues) • [Request Feature](https://github.com/aryansondharva/Aura/issues)
 
 </div>
+
+---
 
 ## 🎯 What is Aura?
 
 Aura combines AI and spaced repetition science to help students learn smarter, not harder. Upload your study materials, and Aura will:
-- Generate intelligent quizzes from your content
-- Schedule reviews at optimal intervals for memory retention
-- Track your progress and adapt to your learning patterns
 
-## 🛠️ Tech Stack
+✨ **Generate intelligent quizzes** from your PDFs  
+📅 **Schedule reviews** at optimal intervals for memory retention  
+📊 **Track your progress** with detailed analytics  
+🎯 **Identify weak topics** automatically  
+💡 **Create flashcards** from your wrong answers  
+
+---
+
+## 🖼️ Screenshots
+
+![Aura Banner](./frontend/src/assets/recallo_banner.webp)
+
+---
+
+## �️ Tech Stack
 
 | Layer | Technologies |
 |-------|-------------|
@@ -26,58 +43,55 @@ Aura combines AI and spaced repetition science to help students learn smarter, n
 | **Backend** | Node.js, Express, LangChain |
 | **AI/ML** | Gemini, Groq, OpenRouter, Pinecone (vector DB) |
 | **Database** | Supabase (PostgreSQL + Auth) |
-| **AI Engine** | Python, Flask |
+| **Deployment** | Vercel (Frontend), Render (Backend) |
+
+---
 
 ## 🚀 Quick Start
 
 ### Prerequisites
 - Node.js v16+
-- Python 3.8+
 - npm or yarn
+- Supabase account
+- API keys (Gemini, Groq, Pinecone)
 
-### 1. Clone & Setup
+### 1. Clone Repository
 ```bash
-git clone https://github.com/your-username/Aura.git
+git clone https://github.com/aryansondharva/Aura.git
 cd Aura
-npm run setup
 ```
 
-### 2. Configure Environment
-After setup, edit the `.env` files with your API keys:
+### 2. Install Dependencies
 
-```env
-# Required API Keys
-VITE_SUPABASE_URL=your_supabase_url
-VITE_SUPABASE_KEY=your_supabase_key
-GEMINI_API_KEY=your_gemini_api_key
-OPENROUTER_API_KEY=your_openrouter_api_key
-GROQ_API_KEY=your_groq_api_key
-```
-
-### 3. Run the Application
-
-**Terminal 1 - Frontend:**
+**Frontend:**
 ```bash
-cd frontend && npm run dev
-```
-
-**Terminal 2 - Backend:**
-```bash
-cd backend-js && npm run dev
-```
-
+cd frontend
 ### 4. Access the App
 - Frontend: http://localhost:5173
 - Backend API: http://localhost:3000
+
 
 ## 📁 Project Structure
 
 ```
 Aura/
-├── frontend/          # React + Vite frontend
-├── backend-js/        # Node.js/Express API server
-└── ai-engine/         # Python ML/NLP 
- 
+├── frontend/              # React + Vite frontend
+│   ├── src/
+│   │   ├── components/    # Reusable components
+│   │   ├── pages/         # Page components
+│   │   ├── utils/         # Utility functions
+│   │   └── assets/        # Images and static files
+│   └── package.json
+│
+├── backend/               # Node.js/Express API server
+│   ├── src/
+│   │   ├── routes/        # API routes
+│   │   ├── services/      # Business logic
+│   │   ├── middleware/    # Express middleware
+│   │   └── utils/         # Helper functions
+│   └── package.json
+│
+└── README.md
 ```
 
 ## 👥 Built By
@@ -88,4 +102,10 @@ Aura/
 
 ---
 
-*Powered by Aura. Across the Web.*
+<div align="center">
+
+**⭐ Star this repo if you find it helpful!**
+
+Made with ❤️ by TechAssasin
+
+</div>
