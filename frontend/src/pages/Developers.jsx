@@ -38,7 +38,7 @@ const Developers = () => {
 
         <div className="row g-4 justify-content-center">
           {/* Developer 1 */}
-          <div className="col-md-4">
+          <div className="col-md-3">
             <div className="ft_box dev_box">
               <img src={faruq} alt="developer" className="img-fluid rbc" />
               <h4>HETVI LAD</h4>
@@ -54,9 +54,9 @@ const Developers = () => {
           </div>
 
           {/* Developer 2 */}
-          <div className="col-md-4">
+          <div className="col-md-3">
             <div className="ft_box dev_box">
-              <img src={aryan} alt="aura_logo" className="img-fluid rbc" />
+              <img src={aryan} alt="developer" className="img-fluid rbc" />
               <h4>ARYAN SONDHARVA</h4>
               <p>
                 Email:{" "}
@@ -70,15 +70,31 @@ const Developers = () => {
           </div>
 
           {/* Developer 3 */}
-          <div className="col-md-4">
+          <div className="col-md-3">
             <div className="ft_box dev_box">
-              <img src={faruq} alt="aura_logo" className="img-fluid rbc" />
-              <h4>SHREY KANSARA</h4>
+              <img src={faruq} alt="developer" className="img-fluid rbc" />
+              <h4>MANTHAN RAJPUROHIT</h4>
               <p>
                 Email:{" "}
-                <a href="mailto:shrey7829@gmail.com">
+                <a href="mailto:rajpurohitmanthan5@gmail.com">
                   <span className="grad_text">
-                  shrey7829@gmail.com
+                    rajpurohitmanthan5@gmail.com
+                  </span>
+                </a>
+              </p>
+            </div>
+          </div>
+
+          {/* Developer 4 */}
+          <div className="col-md-3">
+            <div className="ft_box dev_box">
+              <img src={faruq} alt="developer" className="img-fluid rbc" />
+              <h4>DHARA PATEL</h4>
+              <p>
+                Email:{" "}
+                <a href="mailto:developer4@gmail.com">
+                  <span className="grad_text">
+                    developer4@gmail.com
                   </span>
                 </a>
               </p>
