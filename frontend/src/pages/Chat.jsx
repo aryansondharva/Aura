@@ -1,4 +1,4 @@
-// Chat.jsx
+// Chat.jsx 
 import Sidebar from "../components/Sidebar";
 import ChatInterface from "../components/ChatInterface";
 import History from "../components/History";
