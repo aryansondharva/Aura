@@ -2,105 +2,97 @@
 
 <img src="./frontend/src/assets/recallo.png" alt="Aura Logo" width="150" />
 
-#  
+---
 
-**AI-powered spaced repetition platform that helps students retain information through intelligent quiz generation and personalized learning schedules.**
+**An AI-driven learning companion designed to transform study materials into interactive and resumable learning experiences.**
 
-![Version](https://img.shields.io/badge/version-1.0.1-blue)
+[![Vercel Deployment](https://img.shields.io/badge/Frontend-Vercel-black?logo=vercel)](https://techassasin.vercel.app/)
+[![Render Deployment](https://img.shields.io/badge/Backend-Render-46E3B7?logo=render)](https://aura-s7ho.onrender.com)
+![Version](https://img.shields.io/badge/version-1.1.0-gold)
 ![License](https://img.shields.io/badge/license-ISC-green)
 
 </div>
 
-## 🎯 What is Aura?
+---
 
-Aura combines AI and spaced repetition science to help students learn smarter, not harder. Upload your study materials, and Aura will:
-- Generate intelligent quizzes from your content
-- Schedule reviews at optimal intervals for memory retention
-- Track your progress and adapt to your learning patterns
+## Project Overview
 
-## 🛠️ Tech Stack
+Aura is a state-of-the-art educational platform that combines Deep Analysis AI with personalized learning. By processing uploaded PDF documents, Aura generates a comprehensive database of knowledge that facilitates long-term memory retention.
+
+### Key Features
+- **Resumable Chat and History**: Persistent storage of PDF-based conversations and quiz history allows users to maintain progress across sessions.
+- **Data-Driven Performance Analysis**: Interactive performance tracking through analytical charts and historical score data.
+- **Secure OTP Verification**: Robust mobile-based One-Time Password verification system integrated via Twilio for enhanced account security.
+- **Dual-Mode Profile Management**: Comprehensive user settings dashboard featuring distinct viewing and editing interfaces for better data integrity.
+- **Automated MCQ Generation**: Intelligent quiz creation utilizing structured JSON formatting for high-reliability parsing and consistent UI rendering.
+- **Notification Management**: Integrated granular controls for enabling or disabling automated email alerts and study reminders.
+
+---
+
+## Technical Specifications
 
 | Layer | Technologies |
 |-------|-------------|
-| **Frontend** | React 19, Vite, TailwindCSS, Framer Motion, Three.js |
-| **Backend** | Node.js, Express, LangChain |
-| **AI/ML** | Gemini, Groq, OpenRouter, Pinecone (vector DB) |
-| **Database** | Supabase (PostgreSQL + Auth) |
-| **AI Engine** | Python, Flask |
+| **Frontend** | React 19, Vite, Lucide Icons, Recharts, Framer Motion |
+| **Backend** | Node.js (ESM), Express, LangChain JS |
+| **AI/LLM** | Google Gemini (Pro & Flash), HuggingFace (Embeddings) |
+| **Security** | Twilio SMS API, Supabase Auth |
+| **Database** | Supabase (PostgreSQL), pgvector for Semantic Search |
 
-## 🚀 Quick Start
+---
 
-### Prerequisites
-- Node.js v16+
-- Python 3.8+
-- npm or yarn
+## Deployment Information
 
-### 1. Clone & Setup
+- **Production Frontend**: [techassasin.vercel.app](https://techassasin.vercel.app/)
+- **Production API Gateway**: [aura-s7ho.onrender.com](https://aura-s7ho.onrender.com)
+
+---
+
+## Project Architecture
+
 ```bash
-git clone https://github.com/your-username/Aura.git
-cd Aura
-npm run setup
-```
-
-### 2. Configure Environment
-After setup, edit the `.env` files with your API keys:
-
-```env
-# Required API Keys
-VITE_SUPABASE_URL=your_supabase_url
-VITE_SUPABASE_KEY=your_supabase_key
-GEMINI_API_KEY=your_gemini_api_key
-OPENROUTER_API_KEY=your_openrouter_api_key
-GROQ_API_KEY=your_groq_api_key
-```
-
-### 3. Run the Application
-
-**Terminal 1 - Frontend:**
-```bash
-cd frontend && npm run dev
-```
-
-**Terminal 2 - Backend:**
-```bash
-cd backend-js && npm run dev
-```
-
-### 4. Access the App
-- Frontend: http://localhost:5173
-- Backend API: http://localhost:3000
-
-## 📁 Project Structure
-
-```
 Aura/
-├── frontend/              # React + Vite frontend
+├── frontend/              # Optimized Vite + React App
 │   ├── src/
-│   │   ├── components/    # Reusable components
-│   │   ├── pages/         # Page components
-│   │   ├── utils/         # Utility functions
-│   │   └── assets/        # Images and static files
-│   └── package.json
+│   │   ├── components/    # Reusable UI Components
+│   │   ├── pages/         # Core Application Views
+│   │   └── utils/         # Auth and Session management
 │
-├── backend/               # Node.js/Express API server
+├── backend/               # Scalable Node.js API Infrastructure
 │   ├── src/
-│   │   ├── routes/        # API routes
-│   │   ├── services/      # Business logic
-│   │   ├── middleware/    # Express middleware
-│   │   └── utils/         # Helper functions
-│   └── package.json
+│   │   ├── routes/        # Feature-specific route definitions
+│   │   ├── services/      # AI and PDF processing logic
+│   │   └── config/        # Centralized Environment Configuration
 │
-└── README.md
+└── full_schema.sql        # Core Database and RLS Policy definitions
 ```
+
+---
+
+## Environment Configuration
+
+To initialize the Aura environment, maintain the follow variables in the respective .env files:
+
+### Backend (.env)
+- SUPABASE_URL
+- SUPABASE_KEY
+- GEMINI_API_KEY
+- TWILIO_ACCOUNT_SID
+- TWILIO_PHONE_NUMBER
+- FRONTEND_PROD
+
+### Frontend (.env)
+- VITE_BACKEND_URL
+- VITE_SUPABASE_URL
+- VITE_SUPABASE_ANON_KEY
 
 ---
 
 <div align="center">
 
-**⭐ Star this repo if you find it helpful!**
+**Repository Star is appreciated if this project is beneficial to your work.**
 
-Made with ❤️ by Tech Assassin
+Aura: Intelligent Learning Infrastructure.  
+Developed by Tech Assassin.
 
 </div>
-
----
