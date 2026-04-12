@@ -132,7 +132,21 @@ class PDFProcessor {
       }));
       
       await pineconeIndex.upsert(vectors);
-      
+
+      // Track upload in uploaded_files table for history & resumable chat
+      const fileStats = await fs.stat(filePath).catch(() => ({ size: 0 }));
+      await supabase.from('uploaded_files').upsert({
+        file_uuid: fileUuid,
+        user_id: userId,
+        file_name: fileName,
+        hash_file: fileHash,
+        file_size: fileStats.size,
+        chunk_count: chunks.length,
+        upload_type: 'chat',
+        uploaded_at: new Date().toISOString(),
+        last_used_at: new Date().toISOString()
+      }, { onConflict: 'file_uuid' });
+
       // Cleanup - delete uploaded file
       await this.cleanup(filePath);
       
@@ -298,7 +312,20 @@ class PDFProcessor {
           throw new Error(`Failed to store topics: ${insertError.message}`);
         }
       }
-      
+
+      // Track upload in uploaded_files table
+      const quizFileUuid = uuidv4();
+      await supabase.from('uploaded_files').upsert({
+        file_uuid: quizFileUuid,
+        user_id: userId,
+        file_name: fileName,
+        hash_file: fileHash,
+        chunk_count: chunks.length,
+        upload_type: 'quiz',
+        uploaded_at: new Date().toISOString(),
+        last_used_at: new Date().toISOString()
+      }, { onConflict: 'file_uuid' });
+
       // Cleanup
       await this.cleanup(filePath);
       
