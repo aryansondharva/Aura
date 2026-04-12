@@ -15,9 +15,12 @@ import Archive from "./pages/Archive";
 import Study_Metrics from "./pages/StudyMetrics";
 import Settings from "./pages/Settings";
 import Developers from "./pages/Developers";
+import VoiceAssistant from "./components/VoiceAssistant";
+
 function App() {
   return (
     <Router>
+      <VoiceAssistant />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/features" element={<Features />} />
