@@ -15,8 +15,8 @@ const TEAM = [
     img: faruq,
     color: "#edb437",
     initials: "HL",
-    github: "#",
-    linkedin: "#",
+    github: "https://github.com/hlad-2317",
+    linkedin: "https://www.linkedin.com/in/hetvi-lad/",
   },
   {
     name: "Aryan Sondharva",
@@ -27,24 +27,24 @@ const TEAM = [
     color: "#e49c00",
     initials: "AS",
     github: "https://github.com/aryansondharva",
-    linkedin: "#",
+    linkedin: "https://www.linkedin.com/in/aryan-sondharva",
   },
   {
     name: "Manthan Rajpurohit",
-    role: "Backend Engineer",
+    role: "AI / ML Engineer",
     email: "rajpurohitmanthan5@gmail.com",
     specialty: "Designing robust APIs & databases",
     img: faruq,
     color: "#c87d00",
     initials: "MR",
-    github: "#",
-    linkedin: "#",
+    github: "https://github.com/manthansingh26",
+    linkedin: "https://www.linkedin.com/in/manthan-shravansingh-rajpurohit/",
   },
   {
     name: "Dhara Patel",
-    role: "AI / ML Engineer",
+    role: "Frontend Engineer",
     email: "developer4@gmail.com",
-    specialty: "Integrating intelligence into products",
+    specialty: "Creating seamless user interfaces",
     img: faruq,
     color: "#f5c346",
     initials: "DP",
@@ -170,7 +170,7 @@ const Developers = () => (
       <FloatingOrb style={{ width: 200, height: 200, bottom: "10%", left: "40%", background: "radial-gradient(circle, #edb43712, transparent 70%)", animationDuration: "18s", animationDelay: "1s" }} />
 
       <div className="dev-hero-inner">
-        <div className="dev-badge-pill">✦ TechAssasin Studio</div>
+        <div className="dev-badge-pill">✦ Tech Assassin Studio</div>
         <h1 className="dev-hero-title">
           Meet the <span className="grad_text">Minds</span> Behind Aura
         </h1>
