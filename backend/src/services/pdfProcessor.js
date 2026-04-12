@@ -271,7 +271,12 @@ class PDFProcessor {
         const mergedContent = clusterGroups[clusterKey].join('\n\n');
         
         // Generate title and summary using AI
-        const titlePrompt = `Generate a short topic title (maximum 5 words) for this content:\n\n${mergedContent.substring(0, 1000)}`;
+        const titlePrompt = `Generate a short topic title (maximum 5 words) for this content. 
+        IMPORTANT: Return ONLY the title text, no quotes, no labels, no conversational filler.
+        
+        Content:
+        ${mergedContent.substring(0, 1000)}`;
+        
         const title = await llmService.generate(titlePrompt);
         const cleanTitle = title.replace(/["']/g, '').trim().split(' ').slice(0, 5).join(' ');
         
@@ -287,7 +292,12 @@ class PDFProcessor {
         existingTitles.push(cleanTitle);
         
         // Generate summary
-        const summaryPrompt = `Summarize this content in 2-3 sentences:\n\n${mergedContent.substring(0, 2000)}`;
+        const summaryPrompt = `Summarize this content in 2-3 sentences.
+        IMPORTANT: Return ONLY the summary text. No introductory remarks, no labels, no "Based on the content", no "Here is a summary". 
+        
+        Content:
+        ${mergedContent.substring(0, 2000)}`;
+        
         const summary = await llmService.generate(summaryPrompt);
         
         const topicId = uuidv4();

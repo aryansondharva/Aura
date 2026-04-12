@@ -93,6 +93,7 @@ router.get('/progress/:user_id', async (req, res) => {
       success: true,
       user_id,
       attempts: enrichedAttempts,
+      topics: topics, // Added this to fix frontend blank state
       total_attempts: enrichedAttempts.length,
       topics_attempted: topicIds.length,
       progress: progress || []
