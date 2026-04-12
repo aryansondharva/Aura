@@ -162,14 +162,23 @@ router.post('/quiz-question', upload.single('file'), async (req, res) => {
 
     res.json(response);
   } catch (error) {
-    console.error('Quiz question upload error:', error);
+    console.error('CRITICAL: Quiz question upload error:', {
+      message: error.message,
+      stack: error.stack,
+      userId: req.body?.user_id,
+      fileName: req.file?.originalname
+    });
     
     // Cleanup file on error if it exists
     if (req.file?.path) {
-      await pdfProcessor.cleanup(req.file.path);
+      await pdfProcessor.cleanup(req.file.path).catch(err => console.error('Cleanup failed:', err));
     }
 
-    res.status(500).json({ status: 'error', error: error.message || 'Failed to process file for quiz topics' });
+    res.status(500).json({ 
+      status: 'error', 
+      error: error.message || 'Failed to process file for quiz topics',
+      details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
   }
 });
 

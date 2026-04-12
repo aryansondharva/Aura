@@ -25,30 +25,27 @@ class QuizGenerator {
   buildPrompt(content, difficulty, numQuestions) {
     const difficultyInstruction = this.difficultyPrompts[difficulty] || this.difficultyPrompts.medium;
     
-    return `You are an expert quiz generator. Generate exactly ${numQuestions} multiple choice questions based on the following content.
+    return `You are an expert quiz generator. Generate exactly ${numQuestions} multiple choice questions based on the content provided.
 
 ${difficultyInstruction}
 
 IMPORTANT RULES:
-1. Each question must have exactly 4 options (A, B, C, D)
-2. Distribute correct answers randomly among A, B, C, D (not all the same)
-3. Include a brief explanation for each answer
-4. Questions should test understanding, not just memorization
+1. Each question must have exactly 4 options.
+2. Return the response ONLY as a valid JSON array.
+3. Each object in the array must have these keys: "question", "options" (an array of 4 strings), "answer" (0, 1, 2, or 3 corresponding to index in options), "explanation".
 
-FORMAT YOUR RESPONSE EXACTLY LIKE THIS:
-Question 1: [Question text]
-A) [Option A]
-B) [Option B]
-C) [Option C]
-D) [Option D]
-Answer: [A/B/C/D] - [Correct answer text]
-Explanation: [Brief explanation]
+CONTENT:
+${content.substring(0, 4000)}
 
-Question 2: [Question text]
-...
-
-CONTENT TO GENERATE QUESTIONS FROM:
-${content.substring(0, 4000)}`;
+JSON FORMAT:
+[
+  {
+    "question": "What is...?",
+    "options": ["Option 1", "Option 2", "Option 3", "Option 4"],
+    "answer": 0,
+    "explanation": "Because..."
+  }
+]`;
   }
 
 
@@ -58,59 +55,28 @@ ${content.substring(0, 4000)}`;
    * @returns {Array} Array of parsed question objects
    */
   parseResponse(text) {
-    const questions = [];
-    
-    // Split by "Question X:" pattern
-    const questionBlocks = text.split(/Question\s*\d+\s*:/i).slice(1);
-    
-    for (const block of questionBlocks) {
-      try {
-        // Extract question text (everything before first option)
-        const questionMatch = block.match(/^([\s\S]*?)(?=\n\s*A\)|\n\s*A\.)/i);
-        if (!questionMatch) continue;
-        
-        const questionText = questionMatch[1].trim();
-        
-        // Extract options
-        const optionA = block.match(/A[)\.]?\s*(.*?)(?=\n\s*B[)\.])/is);
-        const optionB = block.match(/B[)\.]?\s*(.*?)(?=\n\s*C[)\.])/is);
-        const optionC = block.match(/C[)\.]?\s*(.*?)(?=\n\s*D[)\.])/is);
-        const optionD = block.match(/D[)\.]?\s*(.*?)(?=\n\s*Answer:|$)/is);
-        
-        if (!optionA || !optionB || !optionC || !optionD) continue;
-        
-        const options = [
-          optionA[1].trim(),
-          optionB[1].trim(),
-          optionC[1].trim(),
-          optionD[1].trim()
-        ];
-        
-        // Extract answer
-        const answerMatch = block.match(/Answer:\s*\[?([A-D])\]?\s*[-–]?\s*(.*?)(?=\n\s*Explanation:|$)/is);
-        if (!answerMatch) continue;
-        
-        const correctAnswer = answerMatch[1].toUpperCase();
-        const answerText = answerMatch[2]?.trim() || options['ABCD'.indexOf(correctAnswer)];
-        
-        // Extract explanation
-        const explanationMatch = block.match(/Explanation:\s*([\s\S]*?)(?=\n\s*Question|\n\s*$|$)/i);
-        const explanation = explanationMatch ? explanationMatch[1].trim() : 'No explanation provided.';
-        
-        questions.push({
-          question_text: questionText,
-          options,
-          correct_answer: correctAnswer,
-          answer_text: answerText,
-          explanation
-        });
-      } catch (error) {
-        console.warn('Failed to parse question block:', error.message);
-        continue;
+    try {
+      const jsonStartIndex = text.indexOf('[');
+      const jsonEndIndex = text.lastIndexOf(']') + 1;
+      
+      if (jsonStartIndex === -1 || jsonEndIndex === 0) {
+        throw new Error('No JSON array found in response');
       }
+
+      const rawJson = text.substring(jsonStartIndex, jsonEndIndex);
+      const parsed = JSON.parse(rawJson);
+      
+      return parsed.map(item => ({
+        question_text: item.question,
+        options: item.options,
+        correct_answer: ['A', 'B', 'C', 'D'][item.answer],
+        answer_text: item.options[item.answer] || '',
+        explanation: item.explanation || ''
+      }));
+    } catch (error) {
+      console.error('Failed to parse quiz JSON:', error.message);
+      return [];
     }
-    
-    return questions;
   }
 
   /**
