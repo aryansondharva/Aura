@@ -211,6 +211,50 @@ class EmailService {
   }
 
   /**
+   * Generate verification email HTML template
+   * @param {string} otp - 6-digit verification code
+   * @returns {string} HTML email content
+   */
+  generateVerificationEmail(otp) {
+    return `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Verify your Aura Account</title>
+</head>
+<body style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #0d0d0d; margin: 0; padding: 0; color: #ffffff;">
+  <div style="max-width: 600px; margin: 20px auto; padding: 40px; background-color: #1a1a1a; border-radius: 20px; border: 1px solid #333; text-align: center;">
+    <h1 style="color: #edb437; font-size: 32px; margin-bottom: 20px;">✦ AURA</h1>
+    <h2 style="font-size: 24px; margin-bottom: 20px;">Verify your account</h2>
+    <p style="color: #888; font-size: 16px; margin-bottom: 30px;">Use the following code to complete your sign-up and unlock AI-powered learning.</p>
+    
+    <div style="background: rgba(237, 180, 55, 0.1); border: 2px dashed #edb437; padding: 20px; border-radius: 12px; display: inline-block; margin-bottom: 30px;">
+      <span style="font-size: 42px; font-weight: 800; letter-spacing: 12px; color: #edb437;">${otp}</span>
+    </div>
+    
+    <p style="color: #555; font-size: 14px;">If you didn't request this, you can safely ignore this email.</p>
+    <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #333; color: #444; font-size: 12px;">
+      © ${new Date().getFullYear()} Aura AI. All rights reserved.
+    </div>
+  </div>
+</body>
+</html>
+    `.trim();
+  }
+
+  /**
+   * Send verification OTP email
+   * @param {string} to - Recipient email
+   * @param {string} otp - Verification code
+   */
+  async sendVerificationEmail(to, otp) {
+    const subject = `Your Aura Verification Code: ${otp}`;
+    const html = this.generateVerificationEmail(otp);
+    return await this.sendEmail(to, subject, html);
+  }
+
+  /**
    * Check if email service is initialized
    * @returns {boolean} True if service is ready
    */
