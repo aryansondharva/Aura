@@ -34,8 +34,9 @@ const corsOptions = {
       config.frontendProd,
       'http://localhost:5173',
       'http://localhost:3000',
-      /^https:\/\/.*\.vercel\.app$/,  // Allow all Vercel deployment URLs
-      /^https:\/\/aura.*\.vercel\.app$/  // Allow Aura-specific Vercel URLs
+      /^https:\/\/.*\.vercel\.app$/, // Allow all Vercel deployment URLs
+      /^https:\/\/aura.*\.vercel\.app$/, // Allow Aura-specific Vercel URLs
+      /^https:\/\/.*\.onrender\.com$/ // Allow all Render deployment URLs
     ].filter(Boolean);
     
     if (allowedOrigins.includes(origin)) {
