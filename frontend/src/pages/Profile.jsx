@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from "react";
 import Sidebar from "../components/Sidebar";
 import History from "../components/History";
-import { EqualApproximately, Bell, BellOff, Phone, User, CheckCircle, ShieldCheck, Mail, LogOut, ArrowLeft } from "lucide-react";
+import { 
+  EqualApproximately, Bell, BellOff, Phone, User, CheckCircle, 
+  ShieldCheck, Mail, LogOut, ArrowLeft, Edit3, Save, X 
+} from "lucide-react";
 import useSession from "../utils/useSession";
 import supabase from "../utils/supabaseClient";
 import { useNavigate } from "react-router-dom";
@@ -10,9 +13,16 @@ const Profile = () => {
   const { session, userId, isLoggedIn, isSidebarOpen, isHistoryOpen, toggleSidebar, toggleHistory } = useSession();
   const navigate = useNavigate();
 
+  // Mode state
+  const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  
+  // Data state
   const [profile, setProfile] = useState({ name: "", mobile: "", email_notifications: true });
+  const [tempProfile, setTempProfile] = useState({}); // Stores changes before they are saved
+
+  // OTP State
   const [otpSent, setOtpSent] = useState(false);
   const [otpCode, setOtpCode] = useState("");
   const [verifying, setVerifying] = useState(false);
@@ -27,11 +37,15 @@ const Profile = () => {
       const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/user/${userId}`);
       if (response.ok) {
         const data = await response.json();
-        setProfile({
-          name: data.name || "",
+        const loadedProfile = {
+          name: data.name || (session?.user?.user_metadata?.full_name || ""),
           mobile: data.mobile || "",
           email_notifications: data.email_notifications ?? true
-        });
+        };
+        setProfile(loadedProfile);
+        setTempProfile(loadedProfile);
+        // If mobile already exists in DB, we consider it verified for this UI demo
+        if (data.mobile) setIsVerified(true);
       }
     } catch (err) {
       console.error("Fetch profile error:", err);
@@ -46,17 +60,13 @@ const Profile = () => {
       const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/user/update`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId, ...profile })
+        body: JSON.stringify({ userId, ...tempProfile })
       });
       
       if (response.ok) {
-        // Sync with Supabase Auth so sidebar/header updates name immediately
-        await supabase.auth.updateUser({
-          data: { full_name: profile.name }
-        });
-        
-        alert("✨ Profile updated successfully!");
-        fetchProfile(); // Refresh data
+        await supabase.auth.updateUser({ data: { full_name: tempProfile.name } });
+        setProfile(tempProfile);
+        setIsEditing(false); // Switch back to View mode
       }
     } catch (err) {
       alert("Failed to update profile");
@@ -66,18 +76,18 @@ const Profile = () => {
   };
 
   const sendOtp = async () => {
-    if (!profile.mobile) return alert("Please enter a mobile number first");
+    if (!tempProfile.mobile) return alert("Please enter a mobile number first");
     setSaving(true);
     try {
       const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/user/send-otp`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId, mobile: profile.mobile })
+        body: JSON.stringify({ userId, mobile: tempProfile.mobile })
       });
       const data = await response.json();
       if (response.ok) {
         setOtpSent(true);
-        if (data.otp) alert(`Aura Security: Verification code is ${data.otp}`);
+        if (data.otp) alert(`Aura Security: Your code is ${data.otp}`);
       }
     } finally { setSaving(false); }
   };
@@ -111,91 +121,101 @@ const Profile = () => {
             background: "rgba(25, 25, 25, 0.7)", 
             backdropFilter: "blur(20px)",
             borderRadius: "32px",
-            border: "1px solid rgba(255, 255, 255, 0.08)",
+            border: "1px solid rgba(255, 255, 255, 0.1)",
             boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.5)"
           }}>
-            <div className="text-center mb-5">
-              <h2 className="display-6 fw-bold grad_text mb-1">Aura Settings</h2>
-              <p className="text-white-50 small">Manage your identity and notifications</p>
-            </div>
-
+            
             {loading ? (
               <div className="text-center py-5"><div className="spinner-border text-warning" role="status" /></div>
-            ) : (
-              <div className="profile-form">
-                
-                {/* Account Settings Section */}
-                <div className="section-label text-warning small fw-bold text-uppercase mb-3 tracking-widest" style={{ letterSpacing: "1px" }}>Identity</div>
-                
-                <div className="mb-4">
-                  <div className="d-flex align-items-center mb-2 px-1">
-                    <User size={14} className="text-warning me-2" />
-                    <label className="small text-white-50 fw-medium">Full Name</label>
-                  </div>
-                  <input type="text" className="form-control form-control-lg bg-black border-secondary text-white border-opacity-25" value={profile.name} onChange={(e) => setProfile({...profile, name: e.target.value})} style={{ borderRadius: "12px", fontSize: "1rem" }} />
+            ) : isEditing ? (
+              /** EDIT MODE **/
+              <div className="edit-view animate__animated animate__fadeIn">
+                <div className="d-flex justify-content-between align-items-center mb-5">
+                  <h2 className="grad_text mb-0">Edit Profile</h2>
+                  <button className="btn btn-link text-white-50 p-0" onClick={() => setIsEditing(false)}><X size={24}/></button>
                 </div>
 
                 <div className="mb-4">
-                  <div className="d-flex align-items-center mb-2 px-1">
-                    <Phone size={14} className="text-warning me-2" />
-                    <label className="small text-white-50 fw-medium">Mobile Number</label>
-                  </div>
+                  <label className="small text-white-50 mb-2 d-block">Full Name</label>
+                  <input type="text" className="form-control form-control-lg bg-black border-secondary text-white border-opacity-25" value={tempProfile.name} onChange={(e) => setTempProfile({...tempProfile, name: e.target.value})} />
+                </div>
+
+                <div className="mb-4">
+                  <label className="small text-white-50 mb-2 d-block">Mobile Number</label>
                   <div className="position-relative">
-                    <input type="text" className="form-control form-control-lg bg-black border-secondary text-white border-opacity-25 pe-5" value={profile.mobile} onChange={(e) => setProfile({...profile, mobile: e.target.value})} disabled={isVerified} style={{ borderRadius: "12px" }} />
-                    <div className="position-absolute top-50 end-0 translate-middle-y me-2">
-                       {!isVerified ? (
-                        <button className="btn btn-link text-warning text-decoration-none small fw-bold" onClick={sendOtp}>{otpSent ? "Resend" : "Verify"}</button>
-                       ) : (
-                        <CheckCircle size={20} className="text-success me-2" />
-                       )}
-                    </div>
+                    <input type="text" className="form-control form-control-lg bg-black border-secondary text-white border-opacity-25" value={tempProfile.mobile} onChange={(e) => {setTempProfile({...tempProfile, mobile: e.target.value}); setIsVerified(false);}} />
+                    {!isVerified && (
+                      <button className="btn btn-link text-warning position-absolute top-50 end-0 translate-middle-y me-2 text-decoration-none fw-bold" onClick={sendOtp}>Verify</button>
+                    )}
                   </div>
                 </div>
 
-                {/* OTP Entry */}
-                {otpSent && !isVerified && (
-                  <div className="otp-entry p-4 mb-4 rounded-4" style={{ background: "rgba(237, 180, 55, 0.05)", border: "1px solid rgba(237, 180, 55, 0.2)" }}>
-                    <div className="d-flex align-items-center mb-3">
-                      <ShieldCheck size={18} className="text-warning me-2" />
-                      <span className="small fw-bold">Security Verification</span>
-                    </div>
+                {otpSent && (
+                  <div className="otp-box p-3 mb-4 rounded-3 border border-warning border-opacity-25 bg-warning bg-opacity-10">
+                    <div className="small fw-bold mb-2">Verification Sent</div>
                     <div className="d-flex gap-2">
-                      <input type="text" className="form-control form-control-lg text-center bg-black border-warning border-opacity-50 text-white tracking-widest" placeholder="6-DIGIT CODE" maxLength="6" value={otpCode} onChange={(e) => setOtpCode(e.target.value)} />
-                      <button className="btn btn-warning px-4 fw-bold" onClick={verifyOtp} disabled={verifying}>Confirm</button>
+                       <input type="text" className="form-control bg-black text-white border-warning" placeholder="6-digit code" value={otpCode} onChange={(e) => setOtpCode(e.target.value)} />
+                       <button className="btn btn-warning" onClick={verifyOtp} disabled={verifying}>Check</button>
                     </div>
                   </div>
                 )}
 
-                <hr className="my-5 opacity-10" />
-
-                <div className="section-label text-warning small fw-bold text-uppercase mb-3 tracking-widest" style={{ letterSpacing: "1px" }}>Preferences</div>
-                
-                <div className="notification-toggle d-flex justify-content-between align-items-center p-3 rounded-4 mb-5" style={{ background: "rgba(255, 255, 255, 0.03)", border: "1px solid rgba(255, 255, 255, 0.05)" }}>
-                  <div className="d-flex align-items-center">
-                    <div className="icon-wrap p-2 rounded-3 me-3" style={{ background: profile.email_notifications ? "rgba(237, 180, 55, 0.1)" : "rgba(255,255,255,0.05)" }}>
-                      {profile.email_notifications ? <Bell size={18} className="text-warning"/> : <BellOff size={18} className="text-white-50"/>}
-                    </div>
-                    <div>
-                      <div className="fw-bold small">Email Notifications</div>
-                      <div className="text-white-50" style={{ fontSize: "0.75rem" }}>Weekly updates and quiz reminders</div>
-                    </div>
+                <div className="mb-5 d-flex justify-content-between align-items-center">
+                  <div>
+                    <div className="fw-bold">Email Notifications</div>
+                    <div className="small text-white-50">Stay updated on your quiz progress</div>
                   </div>
-                  <div className="form-check form-switch custom-switch">
-                    <input className="form-check-input" type="checkbox" style={{ transform: "scale(1.3)", cursor: "pointer" }} checked={profile.email_notifications} onChange={(e) => setProfile({...profile, email_notifications: e.target.checked})} />
+                  <div className="form-check form-switch">
+                    <input className="form-check-input" type="checkbox" style={{ transform: "scale(1.2)" }} checked={tempProfile.email_notifications} onChange={(e) => setTempProfile({...tempProfile, email_notifications: e.target.checked})} />
                   </div>
                 </div>
 
-                <div className="actions d-grid gap-3">
-                  <button className="btn btn-warning btn-lg fw-bold py-3 shadow-sm hover-lift" onClick={handleSave} disabled={saving} style={{ borderRadius: "14px" }}>
-                    {saving ? "Processing..." : "Save All Changes"}
+                <div className="d-grid gap-2">
+                  <button className="btn btn-warning btn-lg fw-bold" onClick={handleSave} disabled={saving}><Save size={18} className="me-2"/> Save Changes</button>
+                  <button className="btn btn-outline-secondary" onClick={() => setIsEditing(false)}>Cancel</button>
+                </div>
+              </div>
+            ) : (
+              /** VIEW MODE **/
+              <div className="view-view animate__animated animate__fadeIn">
+                <div className="profile-header text-center mb-5">
+                  <div className="avatar-wrap mx-auto mb-3 d-flex align-items-center justify-content-center" style={{ width: "80px", height: "80px", borderRadius: "50%", background: "linear-gradient(45deg, #edb437, #fff)", color: "#000", fontSize: "2rem", fontWeight: "bold" }}>
+                    {profile.name ? profile.name[0].toUpperCase() : session?.user?.email[0].toUpperCase()}
+                  </div>
+                   <h2 className="grad_text mb-1">{profile.name || "Aura Member"}</h2>
+                   <p className="text-white-50 small">{session?.user?.email}</p>
+                </div>
+
+                <div className="info-grid mb-5">
+                  {/* Name row */}
+                  <div className="d-flex justify-content-between py-3 border-bottom border-white border-opacity-10">
+                    <span className="text-white-50">Full Name</span>
+                    <span className="fw-medium">{profile.name || "Not set"}</span>
+                  </div>
+                  {/* Mobile row */}
+                  <div className="d-flex justify-content-between py-3 border-bottom border-white border-opacity-10">
+                    <span className="text-white-50">Mobile</span>
+                    <span className="fw-medium d-flex align-items-center">
+                      {profile.mobile || "Not set"}
+                      {isVerified && profile.mobile && <CheckCircle size={14} className="text-success ms-2"/>}
+                    </span>
+                  </div>
+                  {/* Notifications row */}
+                  <div className="d-flex justify-content-between py-3">
+                    <span className="text-white-50">Notifications</span>
+                    <span className={`badge ${profile.email_notifications ? 'bg-success bg-opacity-10 text-success' : 'bg-secondary bg-opacity-10 text-white-50'} border-0`}>
+                      {profile.email_notifications ? "Enabled" : "Disabled"}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="d-grid gap-3">
+                  <button className="btn btn-warning btn-lg fw-bold" onClick={() => setIsEditing(true)}>
+                    <Edit3 size={18} className="me-2"/> Edit Profile
                   </button>
                   <div className="d-flex gap-2">
-                    <button onClick={() => navigate("/chat")} className="btn btn-outline-secondary w-100 py-3 border-opacity-25" style={{ borderRadius: "14px" }}>
-                      <ArrowLeft size={16} className="me-2"/> Back
-                    </button>
-                    <button onClick={signout} className="btn btn-outline-danger px-4 border-opacity-25 flex-shrink-0" style={{ borderRadius: "14px" }}>
-                      <LogOut size={18} />
-                    </button>
+                    <button onClick={() => navigate("/chat")} className="btn btn-outline-secondary flex-grow-1 border-opacity-25"><ArrowLeft size={16} className="me-2"/> Back</button>
+                    <button onClick={signout} className="btn btn-outline-danger border-opacity-25"><LogOut size={16}/></button>
                   </div>
                 </div>
               </div>
