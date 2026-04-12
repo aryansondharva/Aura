@@ -89,6 +89,28 @@ class LLMService {
   }
 
   /**
+   * Load chat history from DB records into the in-memory session.
+   * Call this when a user resumes an existing conversation so the AI
+   * remembers previous messages even after a server restart.
+   * @param {string} sessionId - Session identifier (conversation_id)
+   * @param {Array<{user_message: string, response_message: string}>} dbLogs - Rows from chat_logs table
+   */
+  loadHistory(sessionId, dbLogs) {
+    // Only load if session is empty (don't double-load)
+    const existing = this.getMessageHistory(sessionId);
+    if (existing.length > 0) return;
+
+    for (const log of dbLogs) {
+      if (log.user_message) {
+        existing.push({ role: 'user', content: log.user_message });
+      }
+      if (log.response_message) {
+        existing.push({ role: 'assistant', content: log.response_message });
+      }
+    }
+  }
+
+  /**
    * Chat with AI using Groq model with conversation history (primary)
    * Falls back to Gemini if Groq fails
    * @param {string} message - User message

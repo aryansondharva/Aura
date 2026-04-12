@@ -251,6 +251,20 @@ router.post('/chat', async (req, res) => {
     
     // Use conversation_id as session ID for history management
     const sessionId = currentConversationId || uuidv4();
+
+    // Reload history into LLM session if resuming an existing conversation
+    if (!isNewConversation && currentConversationId) {
+      const { data: history } = await supabase
+        .from('chat_logs')
+        .select('user_message, response_message, created_at')
+        .eq('conversation_id', currentConversationId)
+        .order('created_at', { ascending: true })
+        .limit(20); // last 20 exchanges
+
+      if (history && history.length > 0) {
+        await llmService.loadHistory(sessionId, history);
+      }
+    }
     
     // Generate AI response
     const response = await llmService.chat(message, sessionId);
@@ -259,6 +273,15 @@ router.post('/chat', async (req, res) => {
     if (user_id && currentConversationId) {
       await storeChatLog(user_id, currentConversationId, message, response);
       
+      // Update conversation updated_at
+      await supabase
+        .from('conversations')
+        .update({ 
+          updated_at: new Date().toISOString(),
+          last_message_preview: message.substring(0, 120)
+        })
+        .eq('conversation_id', currentConversationId);
+
       // Generate smart title for first message
       if (isNewConversation || await isFirstMessage(currentConversationId)) {
         const title = await llmService.generateTitle(message, response);
@@ -284,7 +307,7 @@ router.post('/chat', async (req, res) => {
  */
 router.post('/ask', async (req, res) => {
   try {
-    const { message, user_id, conversation_id } = req.body;
+    const { message, user_id, conversation_id, file_id } = req.body;
     
     // Validate required fields
     if (!message || !message.trim()) {
@@ -302,6 +325,32 @@ router.post('/ask', async (req, res) => {
     if (!currentConversationId) {
       currentConversationId = await createConversation(user_id);
       isNewConversation = true;
+    }
+
+    // Link the uploaded file to this conversation (enables resume later)
+    if (file_id) {
+      await supabase
+        .from('conversation_files')
+        .upsert({ conversation_id: currentConversationId, file_id }, { onConflict: 'conversation_id,file_id' });
+
+      await supabase
+        .from('uploaded_files')
+        .update({ last_used_at: new Date().toISOString() })
+        .eq('file_id', file_id);
+    }
+
+    // Reload history into LLM session if resuming an existing conversation
+    if (!isNewConversation) {
+      const { data: history } = await supabase
+        .from('chat_logs')
+        .select('user_message, response_message, created_at')
+        .eq('conversation_id', currentConversationId)
+        .order('created_at', { ascending: true })
+        .limit(20);
+
+      if (history && history.length > 0) {
+        await llmService.loadHistory(currentConversationId, history);
+      }
     }
     
     // Detect message type based on keywords
@@ -337,6 +386,15 @@ router.post('/ask', async (req, res) => {
     
     // Store chat log
     await storeChatLog(user_id, currentConversationId, message, response);
+
+    // Update conversation metadata
+    await supabase
+      .from('conversations')
+      .update({
+        updated_at: new Date().toISOString(),
+        last_message_preview: message.substring(0, 120)
+      })
+      .eq('conversation_id', currentConversationId);
     
     // Generate smart title for first message
     if (isNewConversation || await isFirstMessage(currentConversationId)) {
