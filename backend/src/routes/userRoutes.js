@@ -155,6 +155,41 @@ router.post('/send-otp', async (req, res) => {
 });
 
 /**
+ * POST /api/user/send-email-otp - Generate and send Email OTP
+ */
+router.post('/send-email-otp', async (req, res) => {
+  try {
+    const { userId, email } = req.body;
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiresAt = new Date(Date.now() + 15 * 60000).toISOString(); // 15 mins
+
+    const { error: otpError } = await supabase
+      .from('otp_verifications')
+      .insert({
+        user_id: userId,
+        otp_code: otp,
+        expires_at: expiresAt,
+        is_verified: false
+      });
+
+    if (otpError) throw otpError;
+
+    // Send Email via our EmailService
+    const { default: emailService } = await import('../services/emailService.js');
+    const sent = await emailService.sendVerificationEmail(email, otp);
+
+    if (!sent) {
+      throw new Error('Failed to send email. Check backend configuration.');
+    }
+
+    res.json({ success: true, message: 'Verification code sent to your email!' });
+  } catch (error) {
+    console.error('Email OTP Error:', error);
+    res.status(500).json({ error: error.message || 'Failed to send email OTP' });
+  }
+});
+
+/**
  * POST /api/user/verify-otp - Verify the code
  */
 router.post('/verify-otp', async (req, res) => {
