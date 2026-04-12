@@ -59,12 +59,14 @@ ALTER TABLE uploaded_files     ENABLE ROW LEVEL SECURITY;
 ALTER TABLE conversation_files ENABLE ROW LEVEL SECURITY;
 
 -- uploaded_files: users can only see/edit their own files
-CREATE POLICY IF NOT EXISTS "Users manage own uploaded_files"
+DROP POLICY IF EXISTS "Users manage own uploaded_files" ON uploaded_files;
+CREATE POLICY "Users manage own uploaded_files"
     ON uploaded_files FOR ALL
     USING (auth.uid()::text = user_id::text);
 
 -- conversation_files: users can only see links for their own conversations
-CREATE POLICY IF NOT EXISTS "Users manage own conversation_files"
+DROP POLICY IF EXISTS "Users manage own conversation_files" ON conversation_files;
+CREATE POLICY "Users manage own conversation_files"
     ON conversation_files FOR ALL
     USING (
         conversation_id IN (
