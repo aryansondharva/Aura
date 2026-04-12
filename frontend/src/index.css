@@ -205,6 +205,16 @@ p {
 .auth-card button[type=submit]:hover {
   background-color: var(--cs-hover);
   color: var(--cs-black);
+  transform: translateY(-2px);
+}
+
+.header .header-btn {
+  transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.header.scrolled .header-btn {
+  padding: 8px 22px;
+  font-size: 14px;
 }
 
 .btn-otl {
@@ -311,20 +321,30 @@ p {
 /* ========== LAYOUT COMPONENTS ========== */
 .header {
   width: var(--width-full);
-  padding: var(--space-lg);
+  padding: var(--space-xl) var(--space-xl);
   color: white;
   position: fixed;
   top: 0;
   left: 0;
   z-index: var(--z-header);
   background-color: transparent;
-  transition: var(--transition-bg);
-  border-radius: 0 0 var(--radius-2xl) var(--radius-2xl);
+  transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  border-radius: 0;
+  backface-visibility: hidden;
+  will-change: transform, width, top, padding;
 }
 
 .header.scrolled {
-  background-color: var(--cs-overlay);
-  backdrop-filter: var(--blur-base);
+  width: 70%;
+  left: 50%;
+  transform: translate3d(-50%, 15px, 0);
+  background: rgba(10, 10, 10, 0.75);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border-radius: 100px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.1);
+  padding: 6px var(--space-xl);
 }
 
 .pc {
@@ -334,6 +354,11 @@ p {
 /* ========== LOGO COMPONENTS ========== */
 .logo {
   width: var(--size-3xl);
+  transition: width 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.header.scrolled .logo {
+  width: 150px;
 }
 
 .logo2 {
@@ -343,7 +368,25 @@ p {
 /* ========== NAVIGATION COMPONENTS ========== */
 .nav-item a {
   color: var(--cs-white);
-  transition: var(--transition-fast);
+  transition: all 0.3s ease;
+  position: relative;
+  padding: 8px 12px;
+}
+
+.nav-item a::after {
+  content: "";
+  position: absolute;
+  bottom: 0px;
+  left: 50%;
+  width: 0%;
+  height: 2px;
+  background-color: var(--cs-primary);
+  transition: all 0.3s ease;
+  transform: translateX(-50%);
+}
+
+.nav-item a:hover::after {
+  width: 60%;
 }
 
 .nav-item a:hover {

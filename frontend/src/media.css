@@ -67,6 +67,11 @@
     margin-top: var(--margin-navbar-md);
   }
 
+  .header.scrolled {
+    width: 90%;
+    border-radius: var(--radius-2xl);
+  }
+
   .chatinterface {
     flex: 1;
     padding: var(--padding-chat-md);
