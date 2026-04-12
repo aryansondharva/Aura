@@ -9,6 +9,7 @@ import fileRoutes from './routes/fileRoutes.js';
 import quizRoutes from './routes/quizRoutes.js';
 import progressRoutes from './routes/progressRoutes.js';
 import conversationRoutes from './routes/conversationRoutes.js';
+import userRoutes from './routes/userRoutes.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -84,6 +85,7 @@ app.use('/api', fileRoutes);
 app.use('/api', quizRoutes);
 app.use('/api', progressRoutes);
 app.use('/api', conversationRoutes);
+app.use('/api/user', userRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

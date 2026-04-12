@@ -41,6 +41,11 @@ const config = {
   gmailUser: process.env.GMAIL_USER,
   gmailAppPassword: process.env.GMAIL_APP_PASSWORD,
   
+  // Twilio configuration
+  twilioAccountSid: process.env.TWILIO_ACCOUNT_SID,
+  twilioAuthToken: process.env.TWILIO_AUTH_TOKEN,
+  twilioPhoneNumber: process.env.TWILIO_PHONE_NUMBER,
+  
   // File upload configuration
   maxFileSize: 5 * 1024 * 1024, // 5MB
   uploadDir: path.join(__dirname, '../../uploads'),
