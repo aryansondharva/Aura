@@ -92,7 +92,6 @@ To initialize the Aura environment, maintain the follow variables in the respect
 
 **Repository Star is appreciated if this project is beneficial to your work.**
 
-Aura: Intelligent Learning Infrastructure.  
-Developed by Tech Assassin.
+Developed by 💖 Tech Assassin.
 
 </div>
