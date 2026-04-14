@@ -159,10 +159,10 @@ router.post('/readiness/set-syllabus', async (req, res) => {
 });
 
 
-// ── AI-EXTRACT SYLLABUS FROM PDF TEXT ───────────────────────
+// ── AI-EXTRACT GTU SYLLABUS FROM PDF TEXT ──────────────────
 /**
  * POST /api/readiness/extract-syllabus
- * AI auto-generates syllabus topics from uploaded papers
+ * AI auto-generates GTU unit-based syllabus from uploaded papers
  */
 router.post('/readiness/extract-syllabus', async (req, res) => {
   try {
@@ -172,57 +172,52 @@ router.post('/readiness/extract-syllabus', async (req, res) => {
       return res.status(400).json({ error: 'Session ID and User ID are required' });
     }
 
-    // Get combined text from all PDFs
     const { combinedText } = await bulkPdfProcessor.getSessionTexts(session_id);
 
     if (!combinedText || combinedText.trim().length < 100) {
-      return res.status(400).json({ error: 'Not enough content to extract syllabus' });
+      return res.status(400).json({ error: 'Upload PDFs first before extracting syllabus' });
     }
 
-    const { default: llmService } = await import('../services/llmService.js');
+    // Use GTU-specific extractor from readinessService
+    const topics = await readinessService.extractGtuSyllabus(combinedText, session_id);
 
-    const prompt = `Analyze these exam question papers and identify ALL major topics/units covered in the syllabus.
-
-For each topic, determine:
-1. Topic name
-2. Unit number (if identifiable)
-3. Whether it could be optional (true/false)
-
-Return ONLY a valid JSON array. No other text.
-Format:
-[
-  {"name": "Topic Name", "unit": 1, "is_optional": false},
-  {"name": "Optional Topic", "unit": 5, "is_optional": true}
-]
-
-QUESTION PAPERS:
-${combinedText.substring(0, 10000)}`;
-
-    const response = await llmService.generate(prompt);
-
-    // Parse response
-    let topics = [];
-    try {
-      const cleaned = response.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-      const startIdx = cleaned.indexOf('[');
-      const endIdx = cleaned.lastIndexOf(']') + 1;
-      if (startIdx !== -1 && endIdx > 0) {
-        topics = JSON.parse(cleaned.substring(startIdx, endIdx));
-      }
-    } catch (parseError) {
-      return res.status(500).json({ error: 'Failed to parse AI response' });
+    if (!topics || topics.length === 0) {
+      return res.status(500).json({ error: 'Could not extract syllabus from papers. Try running Analysis first.' });
     }
+
+    // Auto-save the extracted syllabus to DB
+    await supabase.from('syllabus_topics').delete().eq('session_id', session_id);
+
+    const rows = topics.map((t, idx) => ({
+      syllabus_id:  uuidv4(),
+      session_id,
+      user_id,
+      topic_name:   t.name || `Unit ${t.unit || idx + 1}`,
+      unit_number:  t.unit || idx + 1,
+      is_optional:  t.is_optional || false,
+      is_selected:  true,
+      weight:       1.0,
+    }));
+
+    const { error: insertErr } = await supabase.from('syllabus_topics').insert(rows);
+    if (insertErr) throw new Error(`Failed to save syllabus: ${insertErr.message}`);
 
     res.json({
       success: true,
-      topics,
-      message: `AI extracted ${topics.length} syllabus topics`,
+      topics: rows.map((r) => ({
+        syllabus_id: r.syllabus_id,
+        topic_name:  r.topic_name,
+        unit_number: r.unit_number,
+        is_optional: r.is_optional,
+      })),
+      message: `AI extracted ${rows.length} GTU units from your papers`,
     });
   } catch (error) {
-    console.error('Extract syllabus error:', error);
+    console.error('Extract GTU syllabus error:', error);
     res.status(500).json({ error: error.message });
   }
 });
+
 
 
 // ── ANALYZE SESSION (AI Pipeline) ───────────────────────────

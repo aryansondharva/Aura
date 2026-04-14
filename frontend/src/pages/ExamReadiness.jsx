@@ -409,37 +409,36 @@ const ExamReadiness = () => {
     setSyllabusTopics((prev) => prev.filter((_, i) => i !== idx));
   };
 
-  // ── READINESS GAUGE COMPONENT ──────────────────────────
-  const ReadinessGauge = ({ score, level }) => {
-    const radius = 80;
+  // ── GTU READINESS GAUGE ─────────────────────────────────
+  const ReadinessGauge = ({ score, level, gtuGrade, projectedSEE, willPass }) => {
+    const radius = 78;
     const circumference = 2 * Math.PI * radius;
     const offset = circumference - (score / 100) * circumference;
 
     return (
       <div className="readiness-gauge text-center">
-        <svg width="200" height="200" viewBox="0 0 200 200">
-          <circle
-            cx="100" cy="100" r={radius}
-            fill="none" stroke="#2a2a2a" strokeWidth="12"
-          />
-          <circle
-            cx="100" cy="100" r={radius}
-            fill="none"
-            stroke={level?.color || "#edb437"}
-            strokeWidth="12"
-            strokeDasharray={circumference}
-            strokeDashoffset={offset}
-            strokeLinecap="round"
-            transform="rotate(-90 100 100)"
-            style={{ transition: "stroke-dashoffset 1.5s ease-in-out" }}
-          />
-          <text x="100" y="90" textAnchor="middle" fill="white" fontSize="36" fontWeight="bold">
-            {score}%
+        <svg width="200" height="210" viewBox="0 0 200 210">
+          <circle cx="100" cy="100" r={radius} fill="none" stroke="#2a2a2a" strokeWidth="12" />
+          <circle cx="100" cy="100" r={radius} fill="none"
+            stroke={level?.color || "#edb437"} strokeWidth="12"
+            strokeDasharray={circumference} strokeDashoffset={offset}
+            strokeLinecap="round" transform="rotate(-90 100 100)"
+            style={{ transition: "stroke-dashoffset 1.5s ease-in-out" }} />
+          <text x="100" y="88" textAnchor="middle" fill="white" fontSize="32" fontWeight="bold">{score}%</text>
+          <text x="100" y="108" textAnchor="middle" fill="#edb437" fontSize="13" fontWeight="bold">
+            {gtuGrade ? `${gtuGrade.grade} Grade · ${gtuGrade.gp} GP` : 'Not Scored'}
           </text>
-          <text x="100" y="115" textAnchor="middle" fill="#999" fontSize="12">
-            {level?.emoji} {level?.label}
+          <text x="100" y="124" textAnchor="middle" fill="#666" fontSize="10">
+            {projectedSEE != null ? `SEE Projection: ${projectedSEE}/70` : level?.label}
           </text>
         </svg>
+        {willPass !== undefined && (
+          <div
+            className={`badge px-3 py-2 mt-1 d-inline-block ${willPass ? 'bg-success' : 'bg-danger'}`}
+            style={{ fontSize: '12px' }}>
+            {willPass ? '✅ Pass Likely (≥35% SEE)' : '❌ FAIL RISK — Below 35% SEE'}
+          </div>
+        )}
       </div>
     );
   };
@@ -746,15 +745,18 @@ const ExamReadiness = () => {
             <div className="row mb-4">
               <div className="col-lg-4 mb-3">
                 <div className="profile-card text-center h-100 d-flex flex-column justify-content-center">
-                  <h6 className="mb-3">Exam Readiness Score</h6>
+                  <h6 className="mb-3">GTU Exam Readiness</h6>
                   <ReadinessGauge
                     score={readinessScore?.overall || sessionData.session?.readiness_score || 0}
-                    level={readinessScore?.level || { label: "Not Calculated", color: "#666", emoji: "⚪" }}
+                    level={readinessScore?.level || { label: 'Run Analysis', color: '#666', emoji: '⚪' }}
+                    gtuGrade={readinessScore?.gtuGrade}
+                    projectedSEE={readinessScore?.projectedSEE}
+                    willPass={readinessScore?.willPass}
                   />
-                  {readinessScore?.estimatedReadyDate && (
+                  {readinessScore?.estimatedDate && (
                     <p className="small mt-2 text-white-50">
                       <Calendar size={14} className="me-1" />
-                      {readinessScore.estimatedReadyDate}
+                      {readinessScore.estimatedDate}
                     </p>
                   )}
                 </div>
@@ -763,14 +765,16 @@ const ExamReadiness = () => {
               {/* Score Breakdown */}
               <div className="col-lg-8 mb-3">
                 <div className="profile-card h-100">
-                  <h6 className="mb-3">Score Breakdown</h6>
+                  <h6 className="mb-3">GTU Score Breakdown
+                    <small className="text-white-50 ms-2" style={{fontSize:'10px'}}>70 marks SEE · 30 marks CIE</small>
+                  </h6>
                   {readinessScore?.breakdown ? (
                     <div className="row g-3">
                       {Object.entries(readinessScore.breakdown).map(([key, val]) => (
                         <div key={key} className="col-6">
                           <div className="p-3 rounded" style={{ backgroundColor: "#1a1a1a" }}>
                             <div className="d-flex justify-content-between mb-1">
-                              <span className="small text-capitalize">{key}</span>
+                              <span className="small">{val.label || key}</span>
                               <span className="small" style={{ color: "#edb437" }}>
                                 {val.score}% <span className="text-white-50">({val.weight})</span>
                               </span>
@@ -778,7 +782,7 @@ const ExamReadiness = () => {
                             <div className="progress" style={{ height: "4px", backgroundColor: "#2a2a2a" }}>
                               <div className="progress-bar" style={{
                                 width: `${val.score}%`,
-                                background: val.score >= 70 ? "#22c55e" : val.score >= 40 ? "#eab308" : "#ef4444",
+                                background: val.score >= 65 ? "#22c55e" : val.score >= 40 ? "#eab308" : "#ef4444",
                               }} />
                             </div>
                           </div>
@@ -873,68 +877,104 @@ const ExamReadiness = () => {
 
               {patterns.length > 0 ? (
                 <div>
-                  {patterns.map((pattern, idx) => (
+                  {patterns.map((pattern) => (
                     <div key={pattern.pattern_id} className="mb-3 p-3 rounded"
-                      style={{ backgroundColor: "#1a1a1a", borderLeft: "3px solid #edb437" }}>
+                      style={{
+                        backgroundColor: "#1a1a1a",
+                        borderLeft: `3px solid ${
+                          pattern.frequency_count >= 3 ? '#ef4444' :
+                          pattern.frequency_count >= 2 ? '#eab308' : '#edb437'
+                        }`
+                      }}>
                       <div className="d-flex justify-content-between align-items-start">
                         <div className="flex-grow-1">
-                          <div className="d-flex align-items-center gap-2 mb-1">
+                          <div className="d-flex align-items-center gap-1 mb-2 flex-wrap">
+                            {/* GTU frequency */}
                             <span className="badge" style={{
-                              backgroundColor: pattern.frequency_count >= 5 ? "#ef4444" :
-                                pattern.frequency_count >= 3 ? "#eab308" : "#22c55e",
-                              fontSize: "10px",
-                            }}>
-                              🔥 {pattern.frequency_count}x asked
-                            </span>
-                            <span className="badge bg-secondary" style={{ fontSize: "10px" }}>
-                              {pattern.question_type}
-                            </span>
-                            <span className="badge bg-dark" style={{ fontSize: "10px" }}>
-                              {pattern.difficulty}
-                            </span>
+                              backgroundColor: pattern.frequency_count >= 3 ? '#ef4444' :
+                                pattern.frequency_count >= 2 ? '#eab308' : '#22c55e',
+                              fontSize: '10px',
+                            }}>🔥 {pattern.frequency_count}× GTU</span>
+
+                            {/* Marks */}
                             {pattern.marks && (
-                              <span className="badge bg-dark" style={{ fontSize: "10px" }}>
+                              <span className="badge bg-dark" style={{ fontSize: '10px' }}>
                                 {pattern.marks} marks
                               </span>
                             )}
+
+                            {/* GTU Position: Q1 or Q2-Q5 */}
+                            {pattern.appears_in_q1 && (
+                              <span className="badge" style={{ backgroundColor: '#7c3aed', fontSize: '10px' }}>
+                                Q1 Short
+                              </span>
+                            )}
+                            {pattern.appears_in_long && (
+                              <span className="badge" style={{ backgroundColor: '#0891b2', fontSize: '10px' }}>
+                                Q2–Q5 Long
+                              </span>
+                            )}
+
+                            {/* Bloom's Taxonomy Level */}
+                            {pattern.bloom_level && (
+                              <span className="badge bg-secondary" style={{ fontSize: '10px' }}
+                                title={`Bloom's: ${ {'C1':'Remember','C2':'Understand','C3':'Apply','C4':'Analyse','C5':'Evaluate','C6':'Create'}[pattern.bloom_level] || pattern.bloom_level }`}>
+                                {pattern.bloom_level}
+                              </span>
+                            )}
+
+                            {/* Unit */}
+                            {pattern.unit && (
+                              <span className="badge" style={{ backgroundColor: '#166534', fontSize: '10px' }}>
+                                Unit {pattern.unit}
+                              </span>
+                            )}
+
+                            {/* Difficulty */}
+                            <span className="badge bg-dark" style={{ fontSize: '9px', opacity: 0.7 }}>
+                              {pattern.difficulty}
+                            </span>
                           </div>
+
                           <p className="mb-1 small">{pattern.question_text}</p>
-                          {pattern.source_pdfs && (
+
+                          {pattern.source_pdfs && Array.isArray(pattern.source_pdfs) && pattern.source_pdfs.length > 0 && (
                             <small className="text-white-50">
-                              Found in: {(Array.isArray(pattern.source_pdfs) ? pattern.source_pdfs : []).join(", ")}
+                              📄 Found in: {pattern.source_pdfs.join(', ')}
                             </small>
                           )}
                         </div>
+
                         <div className="d-flex gap-1 ms-2">
                           <button className="btn btn-outline-light btn-sm"
                             onClick={() => setExpandedPattern(
                               expandedPattern === pattern.pattern_id ? null : pattern.pattern_id
                             )}>
-                            {expandedPattern === pattern.pattern_id ? (
-                              <ChevronUp size={14} />
-                            ) : (
-                              <Eye size={14} />
-                            )}
+                            {expandedPattern === pattern.pattern_id
+                              ? <ChevronUp size={14} />
+                              : <Eye size={14} />}
                           </button>
                           {!pattern.ai_answer && (
                             <button className="btn btn-cs btn-sm"
                               onClick={() => handleGetAnswer(pattern.pattern_id)}
-                              disabled={generatingAnswer === pattern.pattern_id}>
-                              {generatingAnswer === pattern.pattern_id ? (
-                                <Loader2 size={14} className="spinner-border-sm" />
-                              ) : (
-                                <Sparkles size={14} />
-                              )}
+                              disabled={generatingAnswer === pattern.pattern_id}
+                              title="Generate GTU model answer">
+                              {generatingAnswer === pattern.pattern_id
+                                ? <Loader2 size={14} className="spinner-border-sm" />
+                                : <Sparkles size={14} />}
                             </button>
                           )}
                         </div>
                       </div>
 
-                      {/* Expanded Answer */}
+                      {/* Expanded GTU Model Answer */}
                       {expandedPattern === pattern.pattern_id && pattern.ai_answer && (
                         <div className="mt-3 p-3 rounded" style={{ backgroundColor: "#0a0a0a" }}>
                           <h6 className="small mb-2" style={{ color: "#edb437" }}>
-                            <Sparkles size={12} className="me-1" /> AI-Generated Answer
+                            <Sparkles size={12} className="me-1" />
+                            GTU Model Answer
+                            {pattern.marks ? ` · ${pattern.marks} Marks` : ''}
+                            {pattern.bloom_level ? ` · Bloom's ${pattern.bloom_level}` : ''}
                           </h6>
                           <div className="small" style={{ whiteSpace: "pre-wrap" }}>
                             {pattern.ai_answer}
@@ -950,40 +990,45 @@ const ExamReadiness = () => {
                   <p>No patterns yet. Upload papers and run AI Analysis.</p>
                 </div>
               )}
+
             </div>
 
-            {/* Topic Breakdown */}
+            {/* GTU Topic-wise Breakdown */}
             {readinessScore?.topicScores && readinessScore.topicScores.length > 0 && (
               <div className="profile-card mb-4">
                 <h6 className="mb-3 d-flex align-items-center gap-2">
                   <BarChart3 size={18} style={{ color: "#edb437" }} />
-                  Topic-wise Readiness
+                  Unit-wise GTU Readiness
+                  <small className="text-white-50 ms-auto">GTU: Q2-Q5 map to units — cover all units!</small>
                 </h6>
                 <div className="row g-3">
                   {readinessScore.topicScores.map((topic) => (
                     <div key={topic.syllabusId} className="col-md-6 col-xl-4">
                       <div className="p-3 rounded" style={{ backgroundColor: "#1a1a1a" }}>
                         <div className="d-flex justify-content-between mb-1">
-                          <span className="small">{topic.topicName}</span>
+                          <span className="small">
+                            {topic.unitNumber ? <span style={{ color: '#edb437' }}>Unit {topic.unitNumber}: </span> : ''}
+                            {topic.topicName}
+                          </span>
                           <span className={`badge ${
-                            topic.mastery === "strong" ? "bg-success" :
-                            topic.mastery === "moderate" ? "bg-warning text-dark" :
-                            topic.mastery === "weak" ? "bg-danger" : "bg-secondary"
+                            topic.gtuGrade === 'AA' || topic.gtuGrade === 'AB' ? 'bg-success' :
+                            topic.gtuGrade === 'BB' || topic.gtuGrade === 'BC' ? 'bg-warning text-dark' :
+                            topic.gtuGrade === 'FF' ? 'bg-danger' : 'bg-secondary'
                           }`}>
-                            {topic.mastery}
+                            {topic.gtuGrade || '—'} ({topic.gradePoint ?? '?'}GP)
                           </span>
                         </div>
-                        <div className="progress mt-2" style={{ height: "4px", backgroundColor: "#2a2a2a" }}>
+                        <div className="progress mt-2" style={{ height: "5px", backgroundColor: "#2a2a2a" }}>
                           <div className="progress-bar" style={{
-                            width: `${(topic.avgScore / 10) * 100}%`,
-                            background: topic.mastery === "strong" ? "#22c55e" :
-                              topic.mastery === "moderate" ? "#eab308" : "#ef4444",
+                            width: `${topic.avgPercent}%`,
+                            background: topic.mastery === 'strong' ? '#22c55e' : topic.mastery === 'moderate' ? '#eab308' : '#ef4444',
                           }} />
                         </div>
                         <div className="d-flex justify-content-between mt-1">
-                          <small className="text-white-50">{topic.attempts} attempts</small>
-                          <small className="text-white-50">{topic.questionCount || 0} questions</small>
+                          <small className="text-white-50">{topic.attempts} attempt{topic.attempts !== 1 ? 's' : ''}</small>
+                          <small className="text-white-50">{topic.questionCount} GTU Qs</small>
                         </div>
+                        {topic.isOptional && <span className="badge bg-secondary mt-1" style={{ fontSize: '9px' }}>Optional</span>}
                       </div>
                     </div>
                   ))}
