@@ -15,6 +15,7 @@ import {
   LandPlot,
   ChartSpline,
   Microchip,
+  GraduationCap,
 } from "lucide-react";
 
 const Home = () => {
@@ -129,6 +130,17 @@ const Home = () => {
               <p>
                 Take quizzes designed around your weak points to focus on what
                 needs improvement most.
+              </p>
+            </div>
+          </div>
+          <div className="col-md-6 col-xl-4">
+            <div className="ft_box">
+              <GraduationCap size={50} color="#fff" />
+              <h4>Predictive Exam Readiness AI</h4>
+              <p>
+                Upload past papers and syllabus to get an AI-powered readiness
+                score, weak-area analysis, and targeted exam preparation
+                guidance.
               </p>
             </div>
           </div>
