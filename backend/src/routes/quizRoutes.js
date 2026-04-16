@@ -8,6 +8,7 @@ import llmService from '../services/llmService.js';
 
 const router = express.Router();
 const COMPLETED_SCORE_THRESHOLD = 7;
+const ASCII_CODE_A = 65;
 
 /**
  * Calculate quiz score
@@ -129,6 +130,14 @@ router.post('/submit-answers', async (req, res) => {
     // Evaluate answers
     let correctCount = 0;
     const evaluatedAnswers = submitted_answers.map(submission => {
+      if (!submission || !submission.question_id) {
+        return {
+          question_id: null,
+          selected_answer: '',
+          selected_answer_text: '',
+          is_correct: false
+        };
+      }
       const questionData = correctAnswersMap.get(submission.question_id);
       const selectedAnswer = submission?.selected_answer ? String(submission.selected_answer).toUpperCase() : '';
       const isCorrect = questionData &&
@@ -142,7 +151,7 @@ router.post('/submit-answers', async (req, res) => {
         selected_answer_text: submission.selected_answer_text || '',
         is_correct: isCorrect
       };
-    });
+    }).filter(a => a.question_id);
 
     // Calculate score (Requirements: 8.1, 8.2)
     const totalQuestions = submitted_answers.length;
@@ -417,7 +426,10 @@ async function updateReviewFeatures(userId, topicId, latestScore) {
         created_at: now.toISOString()
       })
       .then(() => null)
-      .catch(() => null);
+      .catch((err) => {
+        console.warn('Failed to insert ml_prediction_logs record:', err?.message || err);
+        return null;
+      });
 
     return nextReviewDateStr;
   } catch (error) {
@@ -445,7 +457,11 @@ router.get('/answer-analysis', async (req, res) => {
 
     // Legacy contract support: resolve attempt from topic_id + attempt_number
     if (!resolvedAttemptId && topic_id && attempt_number && user_id) {
-      const parsedAttemptNumber = Math.max(1, Number(attempt_number));
+      const rawAttemptNumber = Number(attempt_number);
+      if (!Number.isFinite(rawAttemptNumber)) {
+        return res.status(400).json({ error: 'attempt_number must be numeric' });
+      }
+      const parsedAttemptNumber = Math.max(1, rawAttemptNumber);
       const { data: attemptsForTopic, error: attemptsError } = await supabase
         .from('quiz_attempts')
         .select('attempt_id, submitted_at, score')
@@ -457,6 +473,7 @@ router.get('/answer-analysis', async (req, res) => {
         return res.status(404).json({ error: 'Attempt not found for topic/attempt_number' });
       }
       resolvedAttemptId = attemptsForTopic[parsedAttemptNumber - 1].attempt_id;
+      // attempt_number is 1-based in legacy frontend; array index is 0-based
     }
 
     // Verify the attempt belongs to the user if user_id provided
@@ -511,10 +528,14 @@ router.get('/answer-analysis', async (req, res) => {
         is_correct: answer.is_correct,
         explanation: question?.explanation || '',
         correct_option: question?.answer || '',
-        correct_option_text:
-          Array.isArray(question?.answer_option_text) && question?.answer
-            ? question.answer_option_text[(question.answer.charCodeAt(0) - 65)] || ''
-            : ''
+        correct_option_text: (() => {
+          if (!Array.isArray(question?.answer_option_text) || !question?.answer) return '';
+          const answerStr = String(question.answer).toUpperCase();
+          if (!/^[A-D]$/.test(answerStr)) return '';
+          const idx = answerStr.charCodeAt(0) - ASCII_CODE_A;
+          if (idx < 0 || idx >= question.answer_option_text.length) return '';
+          return question.answer_option_text[idx] || '';
+        })()
       };
     });
 

@@ -28,6 +28,8 @@ class MLModelService {
       'recentTrend',
       'repeatedWrongCount'
     ];
+    this.reviewCenterDays = 7;
+    this.confidenceScaleDivisor = 20;
 
     // Warm-load model artifact if available
     this.loadModel().catch(() => {});
@@ -177,7 +179,9 @@ class MLModelService {
       raw += Number(weights[featureName] || 0) * Number(features[featureName] || 0);
     }
 
-    const centeredConfidence = Math.abs(raw - 7) / 20;
+    // Confidence increases as prediction moves away from the uncertain mid-zone (~7 days),
+    // and calibration shifts baseline confidence for the artifact.
+    const centeredConfidence = Math.abs(raw - this.reviewCenterDays) / this.confidenceScaleDivisor;
     const confidence = Math.max(0, Math.min(1, centeredConfidence + calibration));
     const days = Math.max(minDays, Math.min(maxDays, Math.round(raw)));
 

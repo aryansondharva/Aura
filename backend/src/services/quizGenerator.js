@@ -71,13 +71,23 @@ JSON FORMAT:
 
       const rawJson = text.substring(jsonStartIndex, jsonEndIndex);
       const parsed = JSON.parse(rawJson);
-      const parsedQuestions = parsed.map(item => ({
-        question_text: item.question,
-        options: item.options,
-        correct_answer: ['A', 'B', 'C', 'D'][item.answer],
-        answer_text: item.options[item.answer] || '',
-        explanation: item.explanation || ''
-      }));
+      const parsedQuestions = parsed
+        .filter(item =>
+          item &&
+          typeof item.question === 'string' &&
+          Array.isArray(item.options) &&
+          item.options.length === 4 &&
+          Number.isInteger(item.answer) &&
+          item.answer >= 0 &&
+          item.answer <= 3
+        )
+        .map(item => ({
+          question_text: item.question,
+          options: item.options,
+          correct_answer: ['A', 'B', 'C', 'D'][item.answer],
+          answer_text: item.options[item.answer] || '',
+          explanation: item.explanation || ''
+        }));
       return this.removeDuplicateQuestions(parsedQuestions);
     } catch (error) {
       console.error('Failed to parse quiz JSON:', error.message);
@@ -125,6 +135,7 @@ JSON FORMAT:
       for (const ans of incorrectAnswers) {
         frequencyMap[ans.question_id] = (frequencyMap[ans.question_id] || 0) + 1;
       }
+      // Prioritize most frequently missed questions so users revisit weakest concepts first.
       const questionIds = Object.entries(frequencyMap)
         .sort((a, b) => b[1] - a[1])
         .slice(0, limit)

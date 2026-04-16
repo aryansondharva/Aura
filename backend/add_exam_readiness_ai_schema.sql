@@ -1,4 +1,5 @@
 -- Exam Readiness AI schema extensions (idempotent)
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 ALTER TABLE topics
   ADD COLUMN IF NOT EXISTS branch TEXT,

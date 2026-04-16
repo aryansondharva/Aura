@@ -272,8 +272,8 @@ const Exam = () => {
           <div className="row">
             <div className="col-md-12 text-center">
               <h2 className="grad_text">Gear Up! It’s Exam Time!</h2>
-              {statusMessage && <p className="text-info mt-2 mb-0">{statusMessage}</p>}
-              {errorMessage && <p className="text-danger mt-2 mb-0">{errorMessage}</p>}
+              {statusMessage && <p className="text-info mt-2 mb-0" role="status" aria-live="polite">{statusMessage}</p>}
+              {errorMessage && <p className="text-danger mt-2 mb-0" role="alert" aria-live="assertive">{errorMessage}</p>}
             </div>
           </div>
         </div>
@@ -304,8 +304,9 @@ const Exam = () => {
 
                   <div className="row mt-3 text-start g-2">
                     <div className="col-md-6">
-                      <label className="small mb-1">Exam Mode</label>
+                      <label className="small mb-1" htmlFor="exam-mode">Exam Mode</label>
                       <select
+                        id="exam-mode"
                         className="form-select form-select-sm"
                         value={examMode}
                         onChange={(e) => setExamMode(e.target.value)}
@@ -316,20 +317,20 @@ const Exam = () => {
                       </select>
                     </div>
                     <div className="col-md-6">
-                      <label className="small mb-1">Branch</label>
-                      <input className="form-control form-control-sm" value={branch} onChange={(e) => setBranch(e.target.value)} placeholder="e.g., CE/IT/ME" />
+                      <label className="small mb-1" htmlFor="gtu-branch">Branch</label>
+                      <input id="gtu-branch" className="form-control form-control-sm" value={branch} onChange={(e) => setBranch(e.target.value)} placeholder="e.g., CE/IT/ME" />
                     </div>
                     <div className="col-md-4">
-                      <label className="small mb-1">Semester</label>
-                      <input className="form-control form-control-sm" value={semester} onChange={(e) => setSemester(e.target.value)} placeholder="e.g., 4" />
+                      <label className="small mb-1" htmlFor="gtu-semester">Semester</label>
+                      <input id="gtu-semester" className="form-control form-control-sm" value={semester} onChange={(e) => setSemester(e.target.value)} placeholder="e.g., 4" />
                     </div>
                     <div className="col-md-4">
-                      <label className="small mb-1">Subject Code</label>
-                      <input className="form-control form-control-sm" value={subjectCode} onChange={(e) => setSubjectCode(e.target.value)} placeholder="e.g., 3140705" />
+                      <label className="small mb-1" htmlFor="gtu-subject-code">Subject Code</label>
+                      <input id="gtu-subject-code" className="form-control form-control-sm" value={subjectCode} onChange={(e) => setSubjectCode(e.target.value)} placeholder="e.g., 3140705" />
                     </div>
                     <div className="col-md-4">
-                      <label className="small mb-1">Unit</label>
-                      <input className="form-control form-control-sm" value={unit} onChange={(e) => setUnit(e.target.value)} placeholder="e.g., Unit 2" />
+                      <label className="small mb-1" htmlFor="gtu-unit">Unit</label>
+                      <input id="gtu-unit" className="form-control form-control-sm" value={unit} onChange={(e) => setUnit(e.target.value)} placeholder="e.g., Unit 2" />
                     </div>
                   </div>
 
