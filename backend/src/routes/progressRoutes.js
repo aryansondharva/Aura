@@ -3,6 +3,23 @@ import supabase from '../utils/supabase.js';
 
 const router = express.Router();
 
+async function updateWeakTopicsForUser(userId) {
+  const today = new Date().toISOString().split('T')[0];
+  const { data: overdueTopics } = await supabase
+    .from('user_topic_review_features')
+    .select('topic_id')
+    .eq('user_id', userId)
+    .lt('next_review_date', today);
+
+  const topicIds = (overdueTopics || []).map(t => t.topic_id);
+  if (topicIds.length === 0) return;
+
+  await supabase
+    .from('topics')
+    .update({ topic_status: 'Weak' })
+    .in('topic_id', topicIds);
+}
+
 /**
  * Sort quiz attempts by submitted_at in descending order
  * @param {Array} attempts - Array of quiz attempts
@@ -32,6 +49,9 @@ router.get('/progress/:user_id', async (req, res) => {
     if (!user_id) {
       return res.status(400).json({ error: 'User ID is required' });
     }
+
+    // Centralized weak-topic refresh before returning progress data
+    await updateWeakTopicsForUser(user_id).catch(() => null);
 
     // Fetch all quiz attempts for the user (Requirement: 9.1)
     const { data: attempts, error: attemptsError } = await supabase
@@ -118,9 +138,12 @@ router.get('/topics/:user_id', async (req, res) => {
       return res.status(400).json({ error: 'User ID is required' });
     }
 
+    // Centralized weak-topic refresh before returning topics
+    await updateWeakTopicsForUser(user_id).catch(() => null);
+
     const { data: topics, error } = await supabase
       .from('topics')
-      .select('topic_id, title, topic_status, topic_summary, file_name, created_at')
+      .select('topic_id, title, topic_status, topic_summary, file_name, created_at, archive_status')
       .eq('user_id', user_id)
       .order('created_at', { ascending: false });
 

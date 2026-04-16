@@ -164,5 +164,37 @@ describe('ML Model Service Property Tests', () => {
       expect(typeof info.path).toBe('string');
       expect(typeof info.type).toBe('string');
     });
+
+    test('predictReviewSchedule should return metadata with confidence and source', () => {
+      fc.assert(
+        fc.property(
+          fc.float({ min: 0, max: 10, noNaN: true }),
+          fc.float({ min: 0, max: 10, noNaN: true }),
+          fc.integer({ min: 1, max: 100 }),
+          fc.integer({ min: 0, max: 365 }),
+          fc.float({ min: -10, max: 10, noNaN: true }),
+          fc.integer({ min: 0, max: 20 }),
+          (latestScore, avgScore, attemptsCount, daysSinceLastAttempt, recentTrend, repeatedWrongCount) => {
+            const prediction = mlModelService.predictReviewSchedule(
+              latestScore,
+              avgScore,
+              attemptsCount,
+              daysSinceLastAttempt,
+              recentTrend,
+              repeatedWrongCount
+            );
+
+            expect(prediction).toHaveProperty('days');
+            expect(prediction).toHaveProperty('confidence');
+            expect(prediction).toHaveProperty('source');
+            expect(Number.isInteger(prediction.days)).toBe(true);
+            expect(prediction.days).toBeGreaterThan(0);
+            expect(prediction.confidence).toBeGreaterThanOrEqual(0);
+            expect(prediction.confidence).toBeLessThanOrEqual(1);
+          }
+        ),
+        { numRuns: 100 }
+      );
+    });
   });
 });

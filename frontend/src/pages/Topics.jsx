@@ -48,29 +48,16 @@ const Topics = () => {
   const fetchTopics = async () => {
     setLoadingTopics(true);
     try {
-      // 1. Trigger backend update of weak topics
-      await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/update-weak-topics`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ user_id: userId }),
-      });
-
-      // 2. Now fetch topics from Supabase
-      const { data, error } = await supabase
-        .from("topics")
-        .select("*")
-        .eq("user_id", userId)
-        .eq("archive_status", "not_archived") // exclude archived
-        .order("created_at", { ascending: false });
-
-      if (error) {
-        console.error("Failed to fetch topics:", error.message);
+      // Backend now centralizes weak-topic updates while fetching topics
+      const response = await fetch(
+        `${import.meta.env.VITE_BACKEND_URL}/api/topics/${userId}`
+      );
+      if (!response.ok) {
+        console.error("Failed to fetch topics:", response.statusText);
         return;
       }
-
-      setTopics(data || []);
+      const data = await response.json();
+      setTopics((data || []).filter((t) => t.archive_status === "not_archived"));
     } catch (err) {
       console.error("Error updating and fetching topics:", err);
     } finally {

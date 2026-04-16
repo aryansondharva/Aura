@@ -36,13 +36,22 @@ const Exam = () => {
   const [questions, setQuestions] = useState([]); // Holds fetched questions
   const [answers, setAnswers] = useState([]); // User answers for each question
   const [submitting, setSubmitting] = useState(false);
+  const [statusMessage, setStatusMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
+  const [examMode, setExamMode] = useState("quick-practice");
+  const [branch, setBranch] = useState("");
+  const [semester, setSemester] = useState("");
+  const [subjectCode, setSubjectCode] = useState("");
+  const [unit, setUnit] = useState("");
 
   // Function to fetch questions from backend on "Start Exam"
   const startExam = async () => {
     if (!topicId) {
-      alert("Topic ID not specified. Cannot start exam.");
+      setErrorMessage("Topic ID not specified. Cannot start exam.");
       return;
     }
+    setStatusMessage("Generating questions...");
+    setErrorMessage("");
     setLoadingQuestions(true);
     try {
       const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/generate-questions`, {
@@ -52,6 +61,11 @@ const Exam = () => {
           topic_id: topicId,
           difficulty_mode: "hard",
           user_id: userId,
+          exam_mode: examMode,
+          branch,
+          semester,
+          subject_code: subjectCode,
+          unit,
         }),
       });
       const data = await res.json();
@@ -62,6 +76,7 @@ const Exam = () => {
         setAnswers(Array(data.questions.length).fill(null)); // Initialize answers array
         setExamStarted(true);
         setTimeLeft(600); // Reset timer on start
+        setStatusMessage(`Loaded ${data.questions.length} questions.`);
         console.log("📋 Loaded Questions:");
         data.questions.forEach((q, index) => {
           console.log(
@@ -71,13 +86,10 @@ const Exam = () => {
           );
         });
       } else {
-        alert(
-          "Failed to generate questions: " +
-            (data.error || "No questions received")
-        );
+        setErrorMessage("Failed to generate questions: " + (data.error || "No questions received"));
       }
     } catch (err) {
-      alert("Error fetching questions: " + err.message);
+      setErrorMessage("Error fetching questions: " + err.message);
     } finally {
       setLoadingQuestions(false);
     }
@@ -89,18 +101,19 @@ const Exam = () => {
       const answeredCount = answers.filter((a) => a !== null).length;
 
       if (!isTimeUp && answeredCount !== questions.length) {
-        alert("Please answer all questions before submitting!");
+        setErrorMessage("Please answer all questions before submitting.");
         return;
       }
 
       if (isTimeUp) {
-        alert("⏰ Time's up! Submitting your exam...");
+        setStatusMessage("⏰ Time's up. Submitting your exam...");
       } else {
-        alert(
-          `Exam complete. You answered ${answeredCount}/${questions.length} questions. Redirecting to progress page.`
+        setStatusMessage(
+          `Submitting exam (${answeredCount}/${questions.length} answered).`
         );
       }
 
+      setErrorMessage("");
       setSubmitting(true);
 
       try {
@@ -153,16 +166,15 @@ const Exam = () => {
 
         if (response.ok) {
           console.log("✅ Submitted successfully:", result);
+          setStatusMessage("Submitted successfully. Redirecting...");
           navigate("/progress");
         } else {
           console.error("❌ Submission failed:", result);
-          alert(
-            `Failed to submit your answers:\n${result.error || "Unknown error"}`
-          );
+          setErrorMessage(`Failed to submit your answers: ${result.error || "Unknown error"}`);
         }
       } catch (error) {
         console.error("💥 Error submitting exam:", error);
-        alert("An unexpected error occurred during submission.");
+        setErrorMessage("An unexpected error occurred during submission.");
       } finally {
         setSubmitting(false);
       }
@@ -260,6 +272,8 @@ const Exam = () => {
           <div className="row">
             <div className="col-md-12 text-center">
               <h2 className="grad_text">Gear Up! It’s Exam Time!</h2>
+              {statusMessage && <p className="text-info mt-2 mb-0">{statusMessage}</p>}
+              {errorMessage && <p className="text-danger mt-2 mb-0">{errorMessage}</p>}
             </div>
           </div>
         </div>
@@ -288,6 +302,37 @@ const Exam = () => {
                     {formatTime(timeLeft)}
                   </h4>
 
+                  <div className="row mt-3 text-start g-2">
+                    <div className="col-md-6">
+                      <label className="small mb-1">Exam Mode</label>
+                      <select
+                        className="form-select form-select-sm"
+                        value={examMode}
+                        onChange={(e) => setExamMode(e.target.value)}
+                      >
+                        <option value="quick-practice">Quick Practice</option>
+                        <option value="gtu-full-mock">GTU Full Mock</option>
+                        <option value="weak-topics-only">Weak Topics Only</option>
+                      </select>
+                    </div>
+                    <div className="col-md-6">
+                      <label className="small mb-1">Branch</label>
+                      <input className="form-control form-control-sm" value={branch} onChange={(e) => setBranch(e.target.value)} placeholder="e.g., CE/IT/ME" />
+                    </div>
+                    <div className="col-md-4">
+                      <label className="small mb-1">Semester</label>
+                      <input className="form-control form-control-sm" value={semester} onChange={(e) => setSemester(e.target.value)} placeholder="e.g., 4" />
+                    </div>
+                    <div className="col-md-4">
+                      <label className="small mb-1">Subject Code</label>
+                      <input className="form-control form-control-sm" value={subjectCode} onChange={(e) => setSubjectCode(e.target.value)} placeholder="e.g., 3140705" />
+                    </div>
+                    <div className="col-md-4">
+                      <label className="small mb-1">Unit</label>
+                      <input className="form-control form-control-sm" value={unit} onChange={(e) => setUnit(e.target.value)} placeholder="e.g., Unit 2" />
+                    </div>
+                  </div>
+
                   <button
                     className="btn btn-cs mt-4"
                     onClick={startExam}
@@ -314,7 +359,7 @@ const Exam = () => {
                 <button
                   className="btn btn-danger"
                   onClick={() => handleSubmit(false)}
-                  disabled={!allAnswered}
+                  disabled={!allAnswered || submitting}
                 >
                   Submit
                 </button>

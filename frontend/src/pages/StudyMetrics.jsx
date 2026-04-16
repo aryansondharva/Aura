@@ -146,23 +146,6 @@ const StudyMetrics = () => {
           return;
         }
 
-        // ✅ Call this only if userId exists
-        const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/update-weak-topics`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ user_id: userId }),
-          }
-        );
-
-        // ✅ Check the response from backend
-        if (!response.ok) {
-          const errData = await response.json();
-          throw new Error(errData.error || "Failed to update weak topics.");
-        }
-
-        // ✅ Proceed with fetching metrics only if above succeeded
-
         const { data: attempts, error: attemptsError } = await supabase
           .from("quiz_attempts")
           .select("attempt_id, topic_id, score, submitted_at")

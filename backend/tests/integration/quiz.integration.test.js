@@ -641,5 +641,69 @@ Explanation: Basic arithmetic.`
       expect(response.body).toHaveProperty('error');
       expect(response.body.error).toContain('Attempt ID');
     });
+
+    it('should support legacy topic_id + attempt_number query contract', async () => {
+      mockSupabaseFrom.mockImplementation((table) => {
+        if (table === 'quiz_attempts') {
+          return {
+            select: jest.fn().mockReturnValue({
+              eq: jest.fn().mockReturnValue({
+                eq: jest.fn().mockReturnValue({
+                  order: jest.fn().mockResolvedValue({
+                    data: [
+                      { attempt_id: 'attempt-aaa', submitted_at: '2026-01-01T00:00:00Z', score: 5 },
+                      { attempt_id: 'attempt-bbb', submitted_at: '2026-01-02T00:00:00Z', score: 8 }
+                    ],
+                    error: null
+                  })
+                }),
+                single: jest.fn().mockResolvedValue({
+                  data: { attempt_id: 'attempt-bbb', submitted_at: '2026-01-02T00:00:00Z', score: 8 },
+                  error: null
+                })
+              })
+            })
+          };
+        }
+        if (table === 'quiz_answers') {
+          return {
+            select: jest.fn().mockReturnValue({
+              eq: jest.fn().mockResolvedValue({
+                data: [
+                  { question_id: 'q1', selected_answer: 'A', is_correct: true, selected_answer_text: 'Option A' }
+                ],
+                error: null
+              })
+            })
+          };
+        }
+        if (table === 'quiz_questions') {
+          return {
+            select: jest.fn().mockReturnValue({
+              in: jest.fn().mockResolvedValue({
+                data: [
+                  { question_id: 'q1', prompt: 'Question 1', answer: 'A', answer_option_text: ['A', 'B', 'C', 'D'], explanation: 'Explanation' }
+                ],
+                error: null
+              })
+            })
+          };
+        }
+        return {
+          select: jest.fn().mockReturnValue({
+            eq: jest.fn().mockResolvedValue({ data: [], error: null })
+          })
+        };
+      });
+
+      const response = await request(app)
+        .get('/api/answer-analysis')
+        .query({ topic_id: 'topic-1', attempt_number: 2, user_id: 'test-user-123' });
+
+      expect(response.status).toBe(200);
+      expect(response.body).toHaveProperty('analysis');
+      expect(response.body).toHaveProperty('questions');
+      expect(Array.isArray(response.body.questions)).toBe(true);
+    });
   });
 });

@@ -7,6 +7,7 @@ import emailService from '../services/emailService.js';
 import llmService from '../services/llmService.js';
 
 const router = express.Router();
+const COMPLETED_SCORE_THRESHOLD = 7;
 
 /**
  * Calculate quiz score
@@ -27,7 +28,7 @@ export function calculateScore(correctCount, totalQuestions) {
  * Requirements: 8.5
  */
 export function determineTopicStatus(score) {
-  return score > 7 ? 'Completed' : 'Weak';
+  return score > COMPLETED_SCORE_THRESHOLD ? 'Completed' : 'Weak';
 }
 
 /**
@@ -36,7 +37,16 @@ export function determineTopicStatus(score) {
  */
 router.post('/generate-questions', async (req, res) => {
   try {
-    const { user_id, topic_id, difficulty_mode = 'medium' } = req.body;
+    const {
+      user_id,
+      topic_id,
+      difficulty_mode = 'medium',
+      exam_mode = 'quick-practice',
+      branch = '',
+      semester = '',
+      subject_code = '',
+      unit = ''
+    } = req.body;
 
     // Validate required fields
     if (!topic_id) {
@@ -52,12 +62,19 @@ router.post('/generate-questions', async (req, res) => {
     }
 
     // Generate MCQ questions
-    const questions = await quizGenerator.generateMCQs(topic_id, difficulty_mode, user_id);
+    const questions = await quizGenerator.generateMCQs(topic_id, difficulty_mode, user_id, {
+      exam_mode,
+      branch,
+      semester,
+      subject_code,
+      unit
+    });
 
     res.json({
       success: true,
       questions,
-      count: questions.length
+      count: questions.length,
+      exam_mode
     });
   } catch (error) {
     console.error('Generate questions error:', error);
@@ -98,6 +115,12 @@ router.post('/submit-answers', async (req, res) => {
       throw new Error('Failed to fetch questions');
     }
 
+    const { data: attemptData } = await supabase
+      .from('quiz_attempts')
+      .select('attempt_id, submitted_at, score')
+      .eq('attempt_id', resolvedAttemptId)
+      .single();
+
     // Create a map of question_id to correct answer
     const correctAnswersMap = new Map(
       questions.map(q => [q.question_id, { answer: q.answer, options: q.answer_option_text, prompt: q.prompt }])
@@ -107,14 +130,15 @@ router.post('/submit-answers', async (req, res) => {
     let correctCount = 0;
     const evaluatedAnswers = submitted_answers.map(submission => {
       const questionData = correctAnswersMap.get(submission.question_id);
-      const isCorrect = questionData && 
-        submission.selected_answer.toUpperCase() === questionData.answer.toUpperCase();
+      const selectedAnswer = submission?.selected_answer ? String(submission.selected_answer).toUpperCase() : '';
+      const isCorrect = questionData &&
+        selectedAnswer === String(questionData.answer || '').toUpperCase();
       
       if (isCorrect) correctCount++;
 
       return {
         question_id: submission.question_id,
-        selected_answer: submission.selected_answer,
+        selected_answer: selectedAnswer,
         selected_answer_text: submission.selected_answer_text || '',
         is_correct: isCorrect
       };
@@ -226,7 +250,7 @@ async function updateUserTopicProgress(userId, topicId, score) {
     .eq('topic_id', topicId)
     .single();
 
-  const mastered = score > 7;
+  const mastered = score > COMPLETED_SCORE_THRESHOLD;
   const now = new Date().toISOString();
 
   if (existing) {
@@ -276,6 +300,8 @@ async function updateReviewFeatures(userId, topicId, latestScore) {
 
     const now = new Date();
     let avgScore, attemptsCount, daysSinceLastAttempt;
+    let recentTrend = 0;
+    let repeatedWrongCount = 0;
 
     if (existing) {
       // Calculate new average score
@@ -291,20 +317,55 @@ async function updateReviewFeatures(userId, topicId, latestScore) {
       daysSinceLastAttempt = 0;
     }
 
+    // Build lightweight trend and repeated mistakes features
+    const { data: recentAttempts } = await supabase
+      .from('quiz_attempts')
+      .select('attempt_id, score, submitted_at')
+      .eq('user_id', userId)
+      .eq('topic_id', topicId)
+      .order('submitted_at', { ascending: false })
+      .limit(4);
+
+    if (recentAttempts && recentAttempts.length >= 2) {
+      const latest = Number(recentAttempts[0]?.score || 0);
+      const previous = Number(recentAttempts[1]?.score || 0);
+      recentTrend = latest - previous;
+    }
+
+    const attemptIds = (recentAttempts || []).map(a => a.attempt_id).filter(Boolean);
+    if (attemptIds.length > 0) {
+      const { data: recentWrongAnswers } = await supabase
+        .from('quiz_answers')
+        .select('question_id')
+        .in('attempt_id', attemptIds)
+        .eq('is_correct', false);
+
+      if (recentWrongAnswers && recentWrongAnswers.length > 0) {
+        const counts = {};
+        for (const row of recentWrongAnswers) {
+          counts[row.question_id] = (counts[row.question_id] || 0) + 1;
+        }
+        repeatedWrongCount = Object.values(counts).filter(c => c >= 2).length;
+      }
+    }
+
     // Predict next review days using ML model
-    const predictedDays = mlModelService.predictNextReviewDays(
+    const schedulePrediction = mlModelService.predictReviewSchedule(
       latestScore,
       avgScore,
       attemptsCount,
-      daysSinceLastAttempt
+      daysSinceLastAttempt,
+      recentTrend,
+      repeatedWrongCount
     );
+    const predictedDays = schedulePrediction.days;
 
     // Calculate next review date
     const nextReviewDate = new Date(now);
     nextReviewDate.setDate(nextReviewDate.getDate() + predictedDays);
     const nextReviewDateStr = nextReviewDate.toISOString().split('T')[0];
 
-    const mastered = latestScore > 7;
+    const mastered = latestScore > COMPLETED_SCORE_THRESHOLD;
 
     if (existing) {
       // Update existing record
@@ -336,6 +397,28 @@ async function updateReviewFeatures(userId, topicId, latestScore) {
         });
     }
 
+    // Log model inference for retraining/drift (best-effort)
+    await supabase
+      .from('ml_prediction_logs')
+      .insert({
+        user_id: userId,
+        topic_id: topicId,
+        model_version: schedulePrediction.modelVersion || 'fallback-v1',
+        prediction_source: schedulePrediction.source || 'fallback',
+        confidence: schedulePrediction.confidence ?? null,
+        latest_score: latestScore,
+        avg_score: avgScore,
+        attempts_count: attemptsCount,
+        days_since_last_attempt: daysSinceLastAttempt,
+        recent_trend: recentTrend,
+        repeated_wrong_count: repeatedWrongCount,
+        predicted_days: predictedDays,
+        predicted_next_review_date: nextReviewDateStr,
+        created_at: now.toISOString()
+      })
+      .then(() => null)
+      .catch(() => null);
+
     return nextReviewDateStr;
   } catch (error) {
     console.error('Error updating review features:', error);
@@ -350,11 +433,30 @@ async function updateReviewFeatures(userId, topicId, latestScore) {
  */
 router.get('/answer-analysis', async (req, res) => {
   try {
-    const { attempt_id, user_id } = req.query;
+    const { attempt_id, user_id, topic_id, attempt_number } = req.query;
+    let resolvedAttemptId = attempt_id;
 
     // Validate required fields
-    if (!attempt_id) {
-      return res.status(400).json({ error: 'Attempt ID is required' });
+    if (!resolvedAttemptId && (!topic_id || !attempt_number || !user_id)) {
+      return res.status(400).json({
+        error: 'Attempt ID is required (or provide topic_id + attempt_number + user_id)'
+      });
+    }
+
+    // Legacy contract support: resolve attempt from topic_id + attempt_number
+    if (!resolvedAttemptId && topic_id && attempt_number && user_id) {
+      const parsedAttemptNumber = Math.max(1, Number(attempt_number));
+      const { data: attemptsForTopic, error: attemptsError } = await supabase
+        .from('quiz_attempts')
+        .select('attempt_id, submitted_at, score')
+        .eq('topic_id', topic_id)
+        .eq('user_id', user_id)
+        .order('submitted_at', { ascending: true });
+
+      if (attemptsError || !attemptsForTopic || attemptsForTopic.length < parsedAttemptNumber) {
+        return res.status(404).json({ error: 'Attempt not found for topic/attempt_number' });
+      }
+      resolvedAttemptId = attemptsForTopic[parsedAttemptNumber - 1].attempt_id;
     }
 
     // Verify the attempt belongs to the user if user_id provided
@@ -362,7 +464,7 @@ router.get('/answer-analysis', async (req, res) => {
       const { data: attempt, error: attemptError } = await supabase
         .from('quiz_attempts')
         .select('*')
-        .eq('attempt_id', attempt_id)
+        .eq('attempt_id', resolvedAttemptId)
         .eq('user_id', user_id)
         .single();
 
@@ -375,7 +477,7 @@ router.get('/answer-analysis', async (req, res) => {
     const { data: answers, error: answersError } = await supabase
       .from('quiz_answers')
       .select('*')
-      .eq('attempt_id', attempt_id);
+      .eq('attempt_id', resolvedAttemptId);
 
     if (answersError) {
       throw new Error('Failed to fetch answers');
@@ -404,9 +506,15 @@ router.get('/answer-analysis', async (req, res) => {
         options: question?.answer_option_text || [],
         correct_answer: question?.answer || '',
         selected_answer: answer.selected_answer,
+        selected_option: answer.selected_answer,
         selected_answer_text: answer.selected_answer_text,
         is_correct: answer.is_correct,
-        explanation: question?.explanation || ''
+        explanation: question?.explanation || '',
+        correct_option: question?.answer || '',
+        correct_option_text:
+          Array.isArray(question?.answer_option_text) && question?.answer
+            ? question.answer_option_text[(question.answer.charCodeAt(0) - 65)] || ''
+            : ''
       };
     });
 
@@ -415,11 +523,14 @@ router.get('/answer-analysis', async (req, res) => {
     const totalQuestions = analysis.length;
 
     res.json({
-      attempt_id,
+      attempt_id: resolvedAttemptId,
       total_questions: totalQuestions,
       correct_answers: correctCount,
       score: calculateScore(correctCount, totalQuestions),
-      analysis
+      analysis,
+      // Legacy frontend compatibility keys
+      questions: analysis,
+      attempt_data: attemptData || null
     });
   } catch (error) {
     console.error('Answer analysis error:', error);
@@ -441,40 +552,19 @@ router.post('/update-weak-topics', async (req, res) => {
     }
 
     const today = new Date().toISOString().split('T')[0];
-
-    // Find topics with next_review_date before today (Requirement: 12.1)
     const { data: overdueTopics, error: fetchError } = await supabase
       .from('user_topic_review_features')
       .select('topic_id')
       .eq('user_id', user_id)
       .lt('next_review_date', today);
 
-    if (fetchError) {
-      throw new Error('Failed to fetch overdue topics');
+    if (fetchError) throw new Error('Failed to fetch overdue topics');
+    const topicIds = (overdueTopics || []).map(t => t.topic_id);
+    if (topicIds.length === 0) {
+      return res.json({ success: true, message: 'No overdue topics found', updated_count: 0 });
     }
 
-    if (!overdueTopics || overdueTopics.length === 0) {
-      return res.json({
-        success: true,
-        message: 'No overdue topics found',
-        updated_count: 0
-      });
-    }
-
-    const topicIds = overdueTopics.map(t => t.topic_id);
-
-    // Update topic_status to "Weak" (Requirement: 12.2)
-    const { error: updateTopicsError } = await supabase
-      .from('topics')
-      .update({ topic_status: 'Weak' })
-      .in('topic_id', topicIds);
-
-    if (updateTopicsError) {
-      console.error('Error updating topic status:', updateTopicsError);
-    }
-
-    // Reset score to 0 for overdue topics (Requirement: 12.3)
-    // Get latest attempts for each topic
+    await supabase.from('topics').update({ topic_status: 'Weak' }).in('topic_id', topicIds);
     for (const topicId of topicIds) {
       const { data: latestAttempt } = await supabase
         .from('quiz_attempts')
@@ -484,12 +574,8 @@ router.post('/update-weak-topics', async (req, res) => {
         .order('submitted_at', { ascending: false })
         .limit(1)
         .single();
-
       if (latestAttempt) {
-        await supabase
-          .from('quiz_attempts')
-          .update({ score: 0 })
-          .eq('attempt_id', latestAttempt.attempt_id);
+        await supabase.from('quiz_attempts').update({ score: 0 }).eq('attempt_id', latestAttempt.attempt_id);
       }
     }
 

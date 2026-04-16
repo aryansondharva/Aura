@@ -22,12 +22,18 @@ class QuizGenerator {
    * @param {number} numQuestions - Number of questions to generate
    * @returns {string} The prompt for the LLM
    */
-  buildPrompt(content, difficulty, numQuestions) {
+  buildPrompt(content, difficulty, numQuestions, options = {}) {
+    const {
+      examMode = 'quick-practice',
+      gtu = {}
+    } = options;
     const difficultyInstruction = this.difficultyPrompts[difficulty] || this.difficultyPrompts.medium;
+    const gtuInstruction = this.buildGTUInstruction(gtu, examMode);
     
     return `You are an expert quiz generator. Generate exactly ${numQuestions} multiple choice questions based on the content provided.
 
 ${difficultyInstruction}
+${gtuInstruction}
 
 IMPORTANT RULES:
 1. Each question must have exactly 4 options.
@@ -65,14 +71,14 @@ JSON FORMAT:
 
       const rawJson = text.substring(jsonStartIndex, jsonEndIndex);
       const parsed = JSON.parse(rawJson);
-      
-      return parsed.map(item => ({
+      const parsedQuestions = parsed.map(item => ({
         question_text: item.question,
         options: item.options,
         correct_answer: ['A', 'B', 'C', 'D'][item.answer],
         answer_text: item.options[item.answer] || '',
         explanation: item.explanation || ''
       }));
+      return this.removeDuplicateQuestions(parsedQuestions);
     } catch (error) {
       console.error('Failed to parse quiz JSON:', error.message);
       return [];
@@ -86,36 +92,43 @@ JSON FORMAT:
    * @param {number} limit - Maximum number of mistakes to retrieve
    * @returns {Promise<Array>} Array of previously incorrect questions
    */
-  async getPreviousMistakes(userId, topicId, limit = 4) {
+  async getPreviousMistakes(userId, topicId, limit = 6) {
     try {
-      // Get the latest attempt for this user and topic
+      // Get recent attempts for this user and topic
       const { data: attempts, error: attemptError } = await supabase
         .from('quiz_attempts')
         .select('attempt_id')
         .eq('user_id', userId)
         .eq('topic_id', topicId)
         .order('submitted_at', { ascending: false })
-        .limit(1);
+        .limit(5);
       
       if (attemptError || !attempts || attempts.length === 0) {
         return [];
       }
       
-      const latestAttemptId = attempts[0].attempt_id;
-      
-      // Get incorrect answers from the latest attempt
+      const recentAttemptIds = attempts.map(a => a.attempt_id);
+
+      // Get incorrect answers from recent attempts and prioritize repeated misses
       const { data: incorrectAnswers, error: answersError } = await supabase
         .from('quiz_answers')
-        .select('question_id')
-        .eq('attempt_id', latestAttemptId)
+        .select('question_id, attempt_id')
+        .in('attempt_id', recentAttemptIds)
         .eq('is_correct', false)
-        .limit(limit);
+        .limit(limit * 5);
       
       if (answersError || !incorrectAnswers || incorrectAnswers.length === 0) {
         return [];
       }
       
-      const questionIds = incorrectAnswers.map(a => a.question_id);
+      const frequencyMap = {};
+      for (const ans of incorrectAnswers) {
+        frequencyMap[ans.question_id] = (frequencyMap[ans.question_id] || 0) + 1;
+      }
+      const questionIds = Object.entries(frequencyMap)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, limit)
+        .map(([questionId]) => questionId);
       
       // Get the actual questions
       const { data: questions, error: questionsError } = await supabase
@@ -127,7 +140,11 @@ JSON FORMAT:
         return [];
       }
       
-      return questions.map(q => ({
+      const questionById = new Map(questions.map(q => [q.question_id, q]));
+      return questionIds
+        .map(id => questionById.get(id))
+        .filter(Boolean)
+        .map(q => ({
         question_id: q.question_id,
         question_text: q.prompt,
         options: q.answer_option_text,
@@ -197,7 +214,7 @@ JSON FORMAT:
    * @returns {Promise<Array>} Array of generated questions
    * Requirements: 7.1, 7.2, 7.3, 7.4, 7.5
    */
-  async generateMCQs(topicId, difficulty = 'medium', userId = null) {
+  async generateMCQs(topicId, difficulty = 'medium', userId = null, options = {}) {
     // Fetch topic content
     const { data: topic, error: topicError } = await supabase
       .from('topics')
@@ -216,12 +233,22 @@ JSON FORMAT:
     }
     
     // Calculate how many new questions to generate (10 total, minus retries)
-    const numToGenerate = Math.max(0, 10 - mistakeQuestions.length);
+    const examMode = options.exam_mode || 'quick-practice';
+    const targetCount = examMode === 'gtu-full-mock' ? 20 : examMode === 'weak-topics-only' ? 12 : 10;
+    const numToGenerate = Math.max(0, targetCount - mistakeQuestions.length);
     
     let newQuestions = [];
     if (numToGenerate > 0) {
       // Build prompt and generate questions
-      const prompt = this.buildPrompt(topic.merged_content, difficulty, numToGenerate);
+      const prompt = this.buildPrompt(topic.merged_content, difficulty, numToGenerate, {
+        examMode,
+        gtu: {
+          branch: options.branch || '',
+          semester: options.semester || '',
+          subjectCode: options.subject_code || '',
+          unit: options.unit || ''
+        }
+      });
       const response = await llmService.generate(prompt);
       
       // Parse the response
@@ -234,7 +261,7 @@ JSON FORMAT:
     }
     
     // Combine mistake questions with new questions
-    const allQuestions = [...mistakeQuestions, ...newQuestions.slice(0, 10 - mistakeQuestions.length)];
+    const allQuestions = [...mistakeQuestions, ...newQuestions.slice(0, targetCount - mistakeQuestions.length)];
     
     // Shuffle to mix retry questions with new ones
     this.shuffleArray(allQuestions);
@@ -249,6 +276,34 @@ JSON FORMAT:
       options: q.options,
       is_retry: q.is_retry || false
     }));
+  }
+
+  buildGTUInstruction(gtu = {}, examMode = 'quick-practice') {
+    const { branch, semester, subjectCode, unit } = gtu;
+    const hasGTUContext = branch || semester || subjectCode || unit;
+    const modeInstruction = examMode === 'gtu-full-mock'
+      ? 'Follow a GTU full-mock pattern: mixed theory, derivation, and numerical questions.'
+      : examMode === 'weak-topics-only'
+        ? 'Focus on high-error concepts and foundational GTU exam traps.'
+        : 'Keep it concise for quick practice while preserving exam relevance.';
+
+    if (!hasGTUContext) {
+      return `\nMODE:\n${modeInstruction}\n`;
+    }
+
+    return `\nGTU CONTEXT:\n- Branch: ${branch || 'N/A'}\n- Semester: ${semester || 'N/A'}\n- Subject Code: ${subjectCode || 'N/A'}\n- Unit: ${unit || 'N/A'}\n- ${modeInstruction}\n- Use GTU-friendly terminology and question framing.\n`;
+  }
+
+  removeDuplicateQuestions(questions) {
+    const seen = new Set();
+    const unique = [];
+    for (const q of questions) {
+      const normalized = (q.question_text || '').toLowerCase().replace(/\s+/g, ' ').trim();
+      if (!normalized || seen.has(normalized)) continue;
+      seen.add(normalized);
+      unique.push(q);
+    }
+    return unique;
   }
 
   /**
