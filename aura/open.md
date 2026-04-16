@@ -13,7 +13,7 @@ Imagine having a private tutor who has read all your books and is ready to help 
 ## ✨ Amazing Things You Can Do
 
 ### 💬 Chat with Your Books
-Stop searching through hundreds of pages. Just ask Aura a question about your PDF, and it will give you the answer instantly. It’s like having a conversation with your study material.
+Stop searching through hundreds of pages. Just ask Aura a question about your PDF, and it will give you the answer instantly. It's like having a conversation with your study material.
 
 ### 📝 Auto-Generated Quizzes
 Not sure if you understand a topic? Aura can create a personalized quiz for you based exactly on what you just read. It helps you practice and shows you exactly where you need to improve.
@@ -30,6 +30,14 @@ Aura comes with a built-in task list where you can drag and drop your goals. Sta
 ### 🎙️ Just Say the Word
 You can talk to Aura! Use your voice to go to different pages, scroll through notes, or even ask Aura to tell you a joke when you need a break.
 
+### 🧬 Predictive Exam Readiness AI *(NEW!)*
+Upload up to **20 question papers** at once. Aura's AI will:
+- **Extract every question** and find the **most frequently asked** ones across all your papers
+- Ask for your **syllabus** (with optional/compulsory subjects) and map questions to topics
+- Calculate a **real-time Exam Readiness Score (0-100%)** based on your coverage, mastery, learning velocity, and study consistency
+- Generate **AI-powered answers** for the most important questions
+- **Share your full analysis** with classmates via a single link
+
 ---
 
 ## 🏆 Why Use Aura?
@@ -40,12 +48,14 @@ You can talk to Aura! Use your voice to go to different pages, scroll through no
 | **Easy Navigation** | A beautiful, smooth design that looks great on any device. | ✅ Ready |
 | **Smart Chat** | Talk to your documents and get instant answers. | ✅ Ready |
 | **Voice Control** | Use Aura hands-free while you're busy or tired. | ✅ Ready |
-| **Practice Tests** | Unlimited quizzes to help you ace your exams. | 🟡 Improving |
+| **Practice Tests** | Unlimited quizzes to help you ace your exams. | ✅ Ready |
 | **Study Missions** | Fun daily challenges to keep you motivated. | 🟡 Improving |
+| **Exam Readiness AI** | Upload papers, set syllabus, get predicted readiness score. | ✅ Ready |
+| **Classmate Sharing** | Share analysis with classmates via shareable links. | ✅ Ready |
 
 ---
 
-## 🔮 What’s Coming Next?
+## 🔮 What's Coming Next?
 
 1. **🎧 Aura Audiobooks**: Turn your boring PDFs into an AI-narrated podcast you can listen to while walking or traveling.
 2. **🤝 Group Study**: Share notes and take quizzes together with your friends in real-time.

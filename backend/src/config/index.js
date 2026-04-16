@@ -47,7 +47,8 @@ const config = {
   twilioPhoneNumber: process.env.TWILIO_PHONE_NUMBER,
   
   // File upload configuration
-  maxFileSize: 5 * 1024 * 1024, // 5MB
+  maxFileSize: 10 * 1024 * 1024, // 10MB per file (increased for question papers)
+  maxBulkFiles: 20, // Maximum PDFs in bulk upload
   uploadDir: path.join(__dirname, '../../uploads'),
   allowedFileTypes: ['pdf', 'doc', 'docx', 'txt'],
   

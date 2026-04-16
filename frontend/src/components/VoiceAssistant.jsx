@@ -142,6 +142,9 @@ const VoiceAssistant = () => {
     } else if (command.includes('topic') || command.includes('subject')) {
       speakWithMurf('Opening study topics.');
       navigate('/topics');
+    } else if (command.includes('readiness') || command.includes('ready')) {
+      speakWithMurf('Opening Exam Readiness AI.');
+      navigate('/exam-readiness');
     } else if (command.includes('exam') || command.includes('test') || command.includes('quiz')) {
       speakWithMurf('Taking you to the exam arena. Good luck!');
       navigate('/exam');

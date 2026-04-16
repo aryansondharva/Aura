@@ -16,6 +16,8 @@ import Study_Metrics from "./pages/StudyMetrics";
 import Settings from "./pages/Settings";
 import Developers from "./pages/Developers";
 import VoiceAssistant from "./components/VoiceAssistant";
+import ExamReadiness from "./pages/ExamReadiness";
+import SharedAnalysis from "./pages/SharedAnalysis";
 
 function App() {
   return (
@@ -36,6 +38,8 @@ function App() {
         <Route path="/archive" element={<Archive />} />
         <Route path="/studymetrics" element={<Study_Metrics />} />
         <Route path="/settings" element={<Settings />} />
+        <Route path="/exam-readiness" element={<ProtectedRoute><ExamReadiness /></ProtectedRoute>} />
+        <Route path="/shared/:token" element={<SharedAnalysis />} />
         
       </Routes>
     </Router>
@@ -43,3 +47,4 @@ function App() {
 }
 
 export default App;
+
