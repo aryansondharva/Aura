@@ -16,8 +16,23 @@ const __dirname = path.dirname(__filename);
 class MLModelService {
   constructor() {
     this.model = null;
+    this.modelArtifact = null;
     this.modelLoaded = false;
-    this.modelPath = path.join(__dirname, '../../model.json');
+    this.modelPath = path.join(__dirname, '../../model-artifacts/review-scheduler.v1.json');
+    this.modelVersion = 'fallback-v1';
+    this.featureSchema = [
+      'latestScore',
+      'avgScore',
+      'attemptsCount',
+      'daysSinceLastAttempt',
+      'recentTrend',
+      'repeatedWrongCount'
+    ];
+    this.reviewCenterDays = 7;
+    this.confidenceScaleDivisor = 20;
+
+    // Warm-load model artifact if available
+    this.loadModel().catch(() => {});
   }
 
   /**
@@ -29,13 +44,23 @@ class MLModelService {
     try {
       const filePath = modelPath || this.modelPath;
       const modelJson = await fs.readFile(filePath, 'utf-8');
-      this.model = JSON.parse(modelJson);
+      const artifact = JSON.parse(modelJson);
+      if (!artifact || artifact.type !== 'linear-regression' || !artifact.weights) {
+        throw new Error('Invalid model artifact format');
+      }
+      this.modelArtifact = artifact;
+      this.model = artifact;
+      this.modelVersion = artifact.version || 'artifact-v1';
+      this.featureSchema = Array.isArray(artifact.featureSchema) && artifact.featureSchema.length > 0
+        ? artifact.featureSchema
+        : this.featureSchema;
       this.modelLoaded = true;
-      console.log('✅ ML model loaded successfully');
+      console.log(`✅ ML model loaded successfully (${this.modelVersion})`);
       return true;
     } catch (error) {
       console.warn('⚠️ ML model not found, using fallback prediction algorithm');
       this.modelLoaded = false;
+      this.modelVersion = 'fallback-v1';
       return false;
     }
   }
@@ -51,44 +76,122 @@ class MLModelService {
    * @returns {number} Predicted days until next review (positive integer)
    * Requirements: 14.2, 14.3
    */
-  predictNextReviewDays(latestScore, avgScore, attemptsCount, daysSinceLastAttempt) {
+  predictNextReviewDays(
+    latestScore,
+    avgScore,
+    attemptsCount,
+    daysSinceLastAttempt,
+    recentTrend = 0,
+    repeatedWrongCount = 0
+  ) {
+    return this.predictReviewSchedule(
+      latestScore,
+      avgScore,
+      attemptsCount,
+      daysSinceLastAttempt,
+      recentTrend,
+      repeatedWrongCount
+    ).days;
+  }
+
+  /**
+   * Predict review schedule with confidence and source metadata.
+   */
+  predictReviewSchedule(
+    latestScore,
+    avgScore,
+    attemptsCount,
+    daysSinceLastAttempt,
+    recentTrend = 0,
+    repeatedWrongCount = 0
+  ) {
     // Validate inputs
     const validLatestScore = Math.max(0, Math.min(10, latestScore || 0));
     const validAvgScore = Math.max(0, Math.min(10, avgScore || 0));
     const validAttemptsCount = Math.max(1, attemptsCount || 1);
     const validDaysSince = Math.max(0, daysSinceLastAttempt || 0);
+    const validRecentTrend = Math.max(-10, Math.min(10, recentTrend || 0));
+    const validRepeatedWrongCount = Math.max(0, Math.min(20, repeatedWrongCount || 0));
+
+    const features = {
+      latestScore: validLatestScore,
+      avgScore: validAvgScore,
+      attemptsCount: validAttemptsCount,
+      daysSinceLastAttempt: validDaysSince,
+      recentTrend: validRecentTrend,
+      repeatedWrongCount: validRepeatedWrongCount
+    };
 
     // If model is loaded, use it for prediction
     if (this.modelLoaded && this.model) {
-      return this.predictWithModel(validLatestScore, validAvgScore, validAttemptsCount, validDaysSince);
+      const modelPrediction = this.predictWithModel(features);
+      if (modelPrediction.confidence >= 0.5) {
+        return modelPrediction;
+      }
+      const fallbackDays = this.predictWithFallback(
+        validLatestScore,
+        validAvgScore,
+        validAttemptsCount,
+        validDaysSince,
+        validRecentTrend,
+        validRepeatedWrongCount
+      );
+      return {
+        days: fallbackDays,
+        confidence: modelPrediction.confidence,
+        source: 'fallback-low-confidence',
+        modelVersion: this.modelVersion,
+        usedFallback: true
+      };
     }
 
     // Fallback: Use spaced repetition algorithm
-    return this.predictWithFallback(validLatestScore, validAvgScore, validAttemptsCount, validDaysSince);
+    const days = this.predictWithFallback(
+      validLatestScore,
+      validAvgScore,
+      validAttemptsCount,
+      validDaysSince,
+      validRecentTrend,
+      validRepeatedWrongCount
+    );
+    return {
+      days,
+      confidence: 0.4,
+      source: 'fallback-no-model',
+      modelVersion: this.modelVersion,
+      usedFallback: true
+    };
   }
 
   /**
    * Predict using the loaded XGBoost model
    * @private
    */
-  predictWithModel(latestScore, avgScore, attemptsCount, daysSinceLastAttempt) {
-    // Simple tree-based prediction simulation
-    // In production, this would use the actual XGBoost scorer
-    const features = [latestScore, avgScore, attemptsCount, daysSinceLastAttempt];
-    
-    // Base prediction from model weights (simplified)
-    let prediction = 7; // Default 7 days
-    
-    // Adjust based on performance
-    if (latestScore >= 8) {
-      prediction = Math.min(30, 7 + (attemptsCount * 2));
-    } else if (latestScore >= 6) {
-      prediction = Math.min(14, 5 + attemptsCount);
-    } else {
-      prediction = Math.max(1, 3 - Math.floor((6 - latestScore) / 2));
+  predictWithModel(features) {
+    const weights = this.modelArtifact?.weights || {};
+    const intercept = Number(this.modelArtifact?.intercept || 0);
+    const minDays = Number(this.modelArtifact?.minDays || 1);
+    const maxDays = Number(this.modelArtifact?.maxDays || 60);
+    const calibration = Number(this.modelArtifact?.confidenceCalibration || 1);
+
+    let raw = intercept;
+    for (const featureName of this.featureSchema) {
+      raw += Number(weights[featureName] || 0) * Number(features[featureName] || 0);
     }
-    
-    return Math.max(1, Math.round(prediction));
+
+    // Confidence increases as prediction moves away from the uncertain mid-zone (~7 days),
+    // and calibration shifts baseline confidence for the artifact.
+    const centeredConfidence = Math.abs(raw - this.reviewCenterDays) / this.confidenceScaleDivisor;
+    const confidence = Math.max(0, Math.min(1, centeredConfidence + calibration));
+    const days = Math.max(minDays, Math.min(maxDays, Math.round(raw)));
+
+    return {
+      days,
+      confidence,
+      source: 'model',
+      modelVersion: this.modelVersion,
+      usedFallback: false
+    };
   }
 
   /**
@@ -96,7 +199,14 @@ class MLModelService {
    * Based on SM-2 algorithm concepts
    * @private
    */
-  predictWithFallback(latestScore, avgScore, attemptsCount, daysSinceLastAttempt) {
+  predictWithFallback(
+    latestScore,
+    avgScore,
+    attemptsCount,
+    daysSinceLastAttempt,
+    recentTrend = 0,
+    repeatedWrongCount = 0
+  ) {
     // Calculate ease factor based on performance (2.5 is default, range 1.3-2.5)
     const performanceRatio = (latestScore + avgScore) / 20; // 0 to 1
     const easeFactor = 1.3 + (performanceRatio * 1.2); // 1.3 to 2.5
@@ -124,6 +234,16 @@ class MLModelService {
       // Excellent performance: increase interval
       interval = Math.min(60, Math.ceil(interval * 1.3));
     }
+
+    // Trend and repeated mistakes adjustments
+    if (recentTrend > 1.5) {
+      interval = Math.ceil(interval * 1.15);
+    } else if (recentTrend < -1.5) {
+      interval = Math.floor(interval * 0.8);
+    }
+    if (repeatedWrongCount >= 3) {
+      interval = Math.max(1, Math.floor(interval * 0.65));
+    }
     
     // Cap at reasonable bounds
     return Math.max(1, Math.min(60, Math.round(interval)));
@@ -145,7 +265,9 @@ class MLModelService {
     return {
       loaded: this.modelLoaded,
       path: this.modelPath,
-      type: this.modelLoaded ? 'XGBoost' : 'Fallback (Spaced Repetition)'
+      type: this.modelLoaded ? 'Artifact (Linear Regression)' : 'Fallback (Spaced Repetition)',
+      version: this.modelVersion,
+      featureSchema: this.featureSchema
     };
   }
 }
