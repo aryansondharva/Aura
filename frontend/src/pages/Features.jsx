@@ -16,6 +16,7 @@ import studymetrics from "../assets/studymetrics.webp";
 import exams from "../assets/exams.webp";
 import progress from "../assets/progress.webp";
 import mail from "../assets/mail.webp";
+import { Link2 } from "lucide-react";
 
 const Features = () => {
   return (
@@ -60,6 +61,35 @@ const Features = () => {
             <img
               src={chatbox}
               alt="aura_logo"
+              className="img-fluid rbc rbc2"
+            />
+          </div>
+        </div>
+        <div className="row align-items-center g-5 pb-5">
+          <div className="col-md-6 order-1 order-md-2">
+            <div className="feature-box">
+              <img
+                src={auraLogo}
+                alt="aura_logo"
+                className="img-fluid logo logo2 mb-4"
+              />
+              <h4 className="grad_text mb-3">Predictive Exam Readiness AI</h4>
+              <h4 className="text-white ovr">
+                Upload previous exam papers, set your syllabus, and let Aura
+                calculate a real-time Exam Readiness Score. Get weak-topic
+                pattern analysis, AI-generated model answers, and clear pass-risk
+                signals so you know exactly what to improve before exam day.
+              </h4>
+              <Link to="/exam-readiness" className="btn btn-cs mt-3">
+                <Link2 size={16} className="me-2" />
+                Open Exam Readiness AI
+              </Link>
+            </div>
+          </div>
+          <div className="col-md-6 order-2 order-md-1">
+            <img
+              src={exams}
+              alt="exam readiness ai"
               className="img-fluid rbc rbc2"
             />
           </div>
