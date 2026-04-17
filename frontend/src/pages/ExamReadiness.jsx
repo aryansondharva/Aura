@@ -1660,7 +1660,9 @@ const styles = {
                         <small style={{ color: "#aaa" }}>
                           {gtuPowerInsights.passGap > 0
                             ? `Need ~${gtuPowerInsights.passGap.toFixed(0)}% more to cross GTU pass-safety zone.`
-                            : `Need ~${gtuPowerInsights.rankGap.toFixed(0)}% more to reach strong GTU scoring zone.`}
+                            : gtuPowerInsights.rankGap > 0
+                              ? `Need ~${gtuPowerInsights.rankGap.toFixed(0)}% more to reach strong GTU scoring zone.`
+                              : "You are already in a strong GTU scoring zone."}
                         </small>
                       </div>
                     )}
