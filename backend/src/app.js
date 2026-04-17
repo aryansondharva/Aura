@@ -10,6 +10,7 @@ import quizRoutes from './routes/quizRoutes.js';
 import progressRoutes from './routes/progressRoutes.js';
 import conversationRoutes from './routes/conversationRoutes.js';
 import userRoutes from './routes/userRoutes.js';
+import readinessRoutes from './routes/readinessRoutes.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -53,8 +54,8 @@ const corsOptions = {
 app.use(cors(corsOptions));
 
 // Configure JSON parsing
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 // Configure static file serving for uploads
 app.use('/uploads', express.static(uploadsDir));
@@ -87,6 +88,7 @@ app.use('/api', quizRoutes);
 app.use('/api', progressRoutes);
 app.use('/api', conversationRoutes);
 app.use('/api/user', userRoutes);
+app.use('/api', readinessRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
