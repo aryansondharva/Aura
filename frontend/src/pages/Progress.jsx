@@ -36,15 +36,7 @@ const Progress = () => {
     const fetchProgress = async () => {
       setLoading(true);
       try {
-
-        // 🔁 Trigger weak topic update first
-        await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/update-weak-topics`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ user_id: userId }),
-        });
-
-        // ✅ Then fetch progress
+        // ✅ Backend progress endpoint now centralizes weak-topic refresh
         const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/progress/${userId}`);
         if (response.ok) {
           const { attempts, topics } = await response.json();
@@ -195,7 +187,7 @@ const Progress = () => {
       );
       if (response.ok) {
         const data = await response.json();
-        setAnalysisData(data.questions);
+        setAnalysisData(data.analysis || data.questions || []);
         setAttemptData(data.attempt_data);
       }
     } finally {

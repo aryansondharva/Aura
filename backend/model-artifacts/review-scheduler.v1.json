@@ -1,0 +1,24 @@
+{
+  "type": "linear-regression",
+  "version": "review-scheduler-v2",
+  "featureSchema": [
+    "latestScore",
+    "avgScore",
+    "attemptsCount",
+    "daysSinceLastAttempt",
+    "recentTrend",
+    "repeatedWrongCount"
+  ],
+  "weights": {
+    "latestScore": 1.5,
+    "avgScore": 0.7,
+    "attemptsCount": 0.3,
+    "daysSinceLastAttempt": 0.1,
+    "recentTrend": 0.9,
+    "repeatedWrongCount": -1.5
+  },
+  "intercept": -3.5,
+  "minDays": 1,
+  "maxDays": 60,
+  "confidenceCalibration": 0.5
+}
