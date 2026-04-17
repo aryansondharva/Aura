@@ -51,6 +51,7 @@ const GTU_SUBJECT_PRESETS = [
 const GTU_PASS_THRESHOLD = 40;
 const GTU_STRONG_SCORING_THRESHOLD = 65;
 const GTU_WEAK_TOPIC_THRESHOLD = 40;
+const GTU_MAX_SEE_SCORE = 70;
 
 /* ─── Custom Styles ─────────────────────────────────────── */
 const styles = {
@@ -260,9 +261,14 @@ const styles = {
     return "You are already in a strong GTU scoring zone.";
   };
 
+  const pluralize = (count, singular, plural = `${singular}s`) =>
+    count === 1 ? singular : plural;
+
   const outputPhaseInsights = useMemo(() => {
     const overallScore = gtuPowerInsights.overallReadinessScore;
-    const projectedSEE = readinessScore?.projectedSEE ?? Math.round((overallScore / 100) * 70);
+    const projectedSEE =
+      readinessScore?.projectedSEE ??
+      Math.round((overallScore / 100) * GTU_MAX_SEE_SCORE);
     const willPass =
       readinessScore?.willPass !== undefined
         ? readinessScore.willPass
@@ -271,6 +277,14 @@ const styles = {
     const recommendations = Array.isArray(readinessScore?.recommendations)
       ? readinessScore.recommendations
       : [];
+
+    const normalizedRecommendations = recommendations.map((rec) => ({
+      ...rec,
+      text:
+        rec?.message ||
+        rec?.action ||
+        "Revise high-yield GTU patterns and rerun analysis for focused recommendations.",
+    }));
 
     const topQuestionOutputs = [...(patterns || [])]
       .sort((a, b) => (b.frequency_count || 0) - (a.frequency_count || 0))
@@ -302,7 +316,7 @@ const styles = {
       actionQueue.push({
         priority: "medium",
         title: "Daily output target",
-        detail: `Complete ${gtuPowerInsights.dailyPatternTarget} high-yield pattern${gtuPowerInsights.dailyPatternTarget === 1 ? "" : "s"} per day.`,
+        detail: `Complete ${gtuPowerInsights.dailyPatternTarget} high-yield ${pluralize(gtuPowerInsights.dailyPatternTarget, "pattern")} per day.`,
       });
     }
 
@@ -332,7 +346,7 @@ const styles = {
       willPass,
       topQuestionOutputs,
       actionQueue,
-      recommendations: recommendations.slice(0, 3),
+      recommendations: normalizedRecommendations.slice(0, 3),
       sevenDayPatternGoal: gtuPowerInsights.dailyPatternTarget
         ? gtuPowerInsights.dailyPatternTarget * 7
         : null,
@@ -1713,7 +1727,7 @@ const styles = {
                           </div>
                           {gtuPowerInsights.dailyPatternTarget && (
                             <div style={{ fontSize: "11px", color: "#aaa" }}>
-                              Target {gtuPowerInsights.dailyPatternTarget} pattern{gtuPowerInsights.dailyPatternTarget === 1 ? "" : "s"} per day
+                              Target {gtuPowerInsights.dailyPatternTarget} {pluralize(gtuPowerInsights.dailyPatternTarget, "pattern")} per day
                             </div>
                           )}
                         </div>
@@ -1944,7 +1958,7 @@ const styles = {
                     <div className="p-3 rounded mb-2" style={{ backgroundColor: "#0f0f1a" }}>
                       <div style={{ fontSize: "11px", color: "#888" }}>Projected SEE</div>
                       <div style={{ fontSize: "18px", fontWeight: 700 }}>
-                        {outputPhaseInsights.projectedSEE}/70
+                        {outputPhaseInsights.projectedSEE}/{GTU_MAX_SEE_SCORE}
                       </div>
                     </div>
                     <div
@@ -1963,7 +1977,7 @@ const styles = {
                     </div>
                     {outputPhaseInsights.sevenDayPatternGoal && (
                       <div className="mt-2" style={{ fontSize: "11px", color: "#888" }}>
-                        7-day target: {outputPhaseInsights.sevenDayPatternGoal} high-yield pattern revisions.
+                        7-day target: {outputPhaseInsights.sevenDayPatternGoal} high-yield {pluralize(outputPhaseInsights.sevenDayPatternGoal, "pattern")}.
                       </div>
                     )}
                   </div>
@@ -2007,7 +2021,7 @@ const styles = {
                             className="p-2 rounded mb-2"
                             style={{ backgroundColor: "#0f0f1a", fontSize: "12px" }}
                           >
-                            <span style={{ color: "#ddd" }}>{rec.message}</span>
+                            <span style={{ color: "#ddd" }}>{rec.text}</span>
                           </div>
                         ))}
                       </div>
