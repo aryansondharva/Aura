@@ -48,6 +48,9 @@ const GTU_SUBJECT_PRESETS = [
   { code: "3110016", short: "OS", subject: "Operating System" },
   { code: "3110007", short: "PPS", subject: "Programming for Problem Solving" },
 ];
+const GTU_PASS_THRESHOLD = 40;
+const GTU_STRONG_SCORING_THRESHOLD = 65;
+const GTU_WEAK_TOPIC_THRESHOLD = 40;
 
 /* ─── Custom Styles ─────────────────────────────────────── */
 const styles = {
@@ -192,7 +195,8 @@ const styles = {
   };
 
   const gtuPowerInsights = useMemo(() => {
-    const overall = readinessScore?.overall ?? sessionData?.session?.readiness_score ?? 0;
+    const overallReadinessScore =
+      readinessScore?.overall ?? sessionData?.session?.readiness_score ?? 0;
     const examDateValue = sessionData?.session?.exam_date || examDate || null;
     const daysLeft = examDateValue
       ? Math.max(0, Math.ceil((new Date(examDateValue) - new Date()) / (1000 * 60 * 60 * 24)))
@@ -207,11 +211,16 @@ const styles = {
 
     const highYieldUnits = Object.entries(frequencyByUnit)
       .map(([unit, frequency]) => ({ unit: Number(unit), frequency }))
+      .filter((item) => Number.isFinite(item.unit))
       .sort((a, b) => b.frequency - a.frequency)
       .slice(0, 3);
 
     const weakTopics = (readinessScore?.topicScores || [])
-      .filter((topic) => topic.mastery === "weak" || (topic.avgPercent ?? 0) < 40)
+      .filter(
+        (topic) =>
+          topic.mastery === "weak" ||
+          (topic.avgPercent ?? 0) < GTU_WEAK_TOPIC_THRESHOLD
+      )
       .sort((a, b) => (a.avgPercent ?? 0) - (b.avgPercent ?? 0))
       .slice(0, 3);
 
@@ -221,13 +230,19 @@ const styles = {
       : 0;
 
     return {
-      overall,
+      overallReadinessScore,
       daysLeft,
       highYieldUnits,
       weakTopics,
       longQuestionShare,
-      passGap: overall < 40 ? 40 - overall : 0,
-      rankGap: overall < 65 ? 65 - overall : 0,
+      passGap:
+        overallReadinessScore < GTU_PASS_THRESHOLD
+          ? GTU_PASS_THRESHOLD - overallReadinessScore
+          : 0,
+      rankGap:
+        overallReadinessScore < GTU_STRONG_SCORING_THRESHOLD
+          ? GTU_STRONG_SCORING_THRESHOLD - overallReadinessScore
+          : 0,
       dailyPatternTarget:
         daysLeft && daysLeft > 0 && patterns?.length
           ? Math.max(1, Math.ceil(patterns.length / daysLeft))
