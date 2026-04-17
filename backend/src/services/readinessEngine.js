@@ -36,6 +36,15 @@ class ReadinessEngine {
     this.GTU_CIE_TOTAL = 30;          // total marks in internal
     this.GTU_QUESTIONS = 5;           // Q1-Q5
     this.GTU_MARKS_PER_Q = 14;        // 14 marks per question
+
+    // Forgetting-curve constants
+    // DEFAULT_TOPIC_GAP_DAYS: assumed elapsed days when submitted_at is unavailable.
+    // Two weeks is a conservative mid-range estimate — long enough to model real
+    // decay without collapsing scores for users who study regularly.
+    this.DEFAULT_TOPIC_GAP_DAYS = 14;
+    // DECAY_FLOOR_FACTOR: minimum retention after infinite time (prevents complete
+    // score collapse — a past perfect score should still contribute something).
+    this.DECAY_FLOOR_FACTOR = 0.5;
   }
 
   /**
@@ -68,19 +77,27 @@ class ReadinessEngine {
         (consistency.score * this.WEIGHTS.consistency)
       ));
 
-      const level          = this.getReadinessLevel(overall);
-      const gtuGrade       = this.getGtuGrade(overall);
-      const projectedSEE   = Math.round((overall / 100) * this.GTU_SEE_TOTAL);
+      // Weak-topic penalty: if any topic sits below the GTU passing threshold (35%)
+      // reduce the overall score proportionally so the risk is surfaced immediately.
+      const topicScores    = await this.getGtuTopicBreakdown(sessionId, userId);
+      const weakTopics     = topicScores.filter((t) => t.attempts > 0 && t.avgPercent < 35);
+      const weakPenalty    = weakTopics.length > 0
+        ? Math.min(15, weakTopics.length * 5) // up to −15 points for 3+ failing topics
+        : 0;
+      const penalisedScore = Math.max(0, overall - weakPenalty);
+
+      const level          = this.getReadinessLevel(penalisedScore);
+      const gtuGrade       = this.getGtuGrade(penalisedScore);
+      const projectedSEE   = Math.round((penalisedScore / 100) * this.GTU_SEE_TOTAL);
       const projectedCIE   = 30; // assume current CIE is good (internally assessed)
       const willPass       = projectedSEE >= Math.round(this.GTU_SEE_TOTAL * 0.35);
-      const estimatedDate  = this.estimateReadyDate(overall, session.exam_date);
-      const topicScores    = await this.getGtuTopicBreakdown(sessionId, userId);
+      const estimatedDate  = this.estimateReadyDate(penalisedScore, session.exam_date);
 
       // Store score record
       await supabase.from('readiness_scores').insert({
         session_id:        sessionId,
         user_id:           userId,
-        overall_score:     overall,
+        overall_score:     penalisedScore,
         topic_scores:      topicScores,
         quiz_velocity:     velocity.score,
         coverage_score:    coverage.score,
@@ -91,11 +108,13 @@ class ReadinessEngine {
       // Update session
       await supabase
         .from('exam_sessions')
-        .update({ readiness_score: overall, updated_at: new Date().toISOString() })
+        .update({ readiness_score: penalisedScore, updated_at: new Date().toISOString() })
         .eq('session_id', sessionId);
 
       return {
-        overall,
+        overall: penalisedScore,
+        rawScore: overall,
+        weakTopicPenalty: weakPenalty,
         level,
         gtuGrade,
         projectedSEE,   // e.g. "Projected SEE Score: 52/70"
@@ -166,13 +185,15 @@ class ReadinessEngine {
   }
 
   /**
-   * Mastery Score — weighted by GTU question importance (marks × frequency)
-   * Higher-marks + more-frequent questions weigh more in the score
+   * Mastery Score — weighted by GTU question importance (marks × frequency).
+   * Applies an Ebbinghaus forgetting-curve decay to each topic's last score
+   * so that topics not practised recently reduce the mastery score.
+   * Decay: R(t) = e^(−t / S)  where S (stability) depends on mastery level.
    */
   async calculateGtuMastery(sessionId, userId) {
     const { data: attempts } = await supabase
       .from('readiness_quiz_attempts')
-      .select('score, syllabus_id, total_questions, correct_count')
+      .select('score, syllabus_id, total_questions, correct_count, submitted_at')
       .eq('session_id', sessionId)
       .eq('user_id', userId)
       .order('submitted_at', { ascending: false });
@@ -195,24 +216,47 @@ class ReadinessEngine {
       topicWeight[p.syllabus_id].push(w);
     }
 
-    let weightedSum = 0, totalWeight = 0;
-
+    // Group attempts by topic and keep most recent per topic for decay calculation
+    const topicLatest = {};
     for (const attempt of attempts) {
-      const weights = topicWeight[attempt.syllabus_id];
-      const avgW = weights
+      if (!topicLatest[attempt.syllabus_id]) {
+        topicLatest[attempt.syllabus_id] = attempt; // already sorted desc → first is latest
+      }
+    }
+
+    let weightedSum = 0;
+    let totalWeight = 0;
+    const now = Date.now();
+
+    for (const [syllabusId, latestAttempt] of Object.entries(topicLatest)) {
+      const weights = topicWeight[syllabusId];
+      const importanceWeight = weights
         ? weights.reduce((a, b) => a + b, 0) / weights.length
         : 0.5;
 
-      const pct = attempt.total_questions > 0
-        ? (attempt.correct_count / attempt.total_questions) * 100
+      const pct = latestAttempt.total_questions > 0
+        ? (latestAttempt.correct_count / latestAttempt.total_questions) * 100
         : 0;
 
-      weightedSum  += pct * avgW;
-      totalWeight  += avgW;
+      // Ebbinghaus forgetting-curve decay: R(t) = e^(−t / S)
+      // Stability S (days): weak mastery forgets fast, strong mastery forgets slowly
+      const stability = pct >= 75 ? 60 : pct >= 50 ? 21 : 7;
+      const daysSince = latestAttempt.submitted_at
+        ? (now - new Date(latestAttempt.submitted_at).getTime()) / 86400000
+        : this.DEFAULT_TOPIC_GAP_DAYS; // assume two-week gap when timestamp unavailable
+      const retentionFactor = Math.exp(-daysSince / stability);
+
+      // Decay reduces effective mastery; DECAY_FLOOR_FACTOR ensures a stale but
+      // previously-strong attempt cannot collapse the score all the way to zero.
+      const decayedPct = pct * (this.DECAY_FLOOR_FACTOR + (1 - this.DECAY_FLOOR_FACTOR) * retentionFactor);
+
+      weightedSum += decayedPct * importanceWeight;
+      totalWeight += importanceWeight;
     }
 
-    const score    = totalWeight > 0 ? Math.min(100, Math.round(weightedSum / totalWeight)) : 0;
-    const avgRaw   = attempts.reduce((s, a) => s + (a.score || 0), 0) / attempts.length;
+    // Also include all attempts (not just per-topic latest) for the raw average display
+    const avgRaw = attempts.reduce((s, a) => s + (a.score || 0), 0) / attempts.length;
+    const score = totalWeight > 0 ? Math.min(100, Math.round(weightedSum / totalWeight)) : 0;
 
     return {
       score,
@@ -221,7 +265,9 @@ class ReadinessEngine {
   }
 
   /**
-   * Velocity Score — improvement trend over recent attempts
+   * Velocity Score — improvement trajectory via exponentially-weighted linear regression.
+   * More recent attempts carry higher weight so short-term momentum is captured
+   * accurately without being drowned out by old data.
    */
   async calculateVelocity(sessionId, userId) {
     const { data: attempts } = await supabase
@@ -229,27 +275,45 @@ class ReadinessEngine {
       .select('score, submitted_at')
       .eq('session_id', sessionId)
       .eq('user_id', userId)
-      .order('submitted_at', { ascending: false })
-      .limit(10);
+      .order('submitted_at', { ascending: true })
+      .limit(15);
 
     if (!attempts || attempts.length < 2) {
       return { score: 50, details: { trend: 'neutral', dataPoints: attempts?.length || 0 } };
     }
 
-    const mid    = Math.floor(attempts.length / 2);
-    const recent = attempts.slice(0, mid);
-    const older  = attempts.slice(mid);
+    const scores = attempts.map((a) => a.score || 0);
+    const n = scores.length;
 
-    const recentAvg = recent.reduce((s, a) => s + (a.score || 0), 0) / recent.length;
-    const olderAvg  = older.reduce((s, a) => s + (a.score || 0), 0) / older.length;
+    // Exponential weights: w_i = e^(i/n) so the most-recent entry has the highest weight
+    const weights = scores.map((_, i) => Math.exp(i / n));
+    const totalWeight = weights.reduce((s, w) => s + w, 0);
 
-    const ratio  = olderAvg === 0 ? (recentAvg > 0 ? 1 : 0) : (recentAvg - olderAvg) / olderAvg;
-    const score  = Math.max(0, Math.min(100, Math.round(50 + ratio * 100)));
-    const trend  = ratio > 0.05 ? 'improving' : ratio < -0.05 ? 'declining' : 'stable';
+    const wMeanX = weights.reduce((s, w, i) => s + w * i, 0) / totalWeight;
+    const wMeanY = weights.reduce((s, w, i) => s + w * scores[i], 0) / totalWeight;
+
+    const numerator   = weights.reduce((s, w, i) => s + w * (i - wMeanX) * (scores[i] - wMeanY), 0);
+    const denominator = weights.reduce((s, w, i) => s + w * (i - wMeanX) ** 2, 0);
+    const slope = denominator !== 0 ? numerator / denominator : 0;
+
+    // Convert slope (points-per-attempt) to a 0-100 velocity score centred at 50
+    // A slope of ±2 points/attempt maps to roughly 90/10 (strong trend signal)
+    const velocityScore = Math.max(0, Math.min(100, Math.round(50 + slope * 25)));
+    const trend = slope > 0.5 ? 'improving' : slope < -0.5 ? 'declining' : 'stable';
+
+    const midpoint  = Math.floor(n / 2);
+    const recentAvg = scores.slice(midpoint).reduce((s, v) => s + v, 0) / (n - midpoint);
+    const olderAvg  = scores.slice(0, midpoint).reduce((s, v) => s + v, 0) / midpoint;
 
     return {
-      score,
-      details: { trend, recentAvg: Math.round(recentAvg * 10) / 10, olderAvg: Math.round(olderAvg * 10) / 10, dataPoints: attempts.length },
+      score: velocityScore,
+      details: {
+        trend,
+        slope: Math.round(slope * 100) / 100,
+        recentAvg: Math.round(recentAvg * 10) / 10,
+        olderAvg:  Math.round(olderAvg  * 10) / 10,
+        dataPoints: n,
+      },
     };
   }
 

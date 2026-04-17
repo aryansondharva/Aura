@@ -28,8 +28,14 @@ class MLModelService {
       'recentTrend',
       'repeatedWrongCount'
     ];
-    this.reviewCenterDays = 7;
-    this.confidenceScaleDivisor = 20;
+    this.reviewCenterDays = 7;        // kept for backward-compatibility
+
+    // Confidence formula constants
+    this.MAX_ATTEMPT_CONFIDENCE  = 0.3;  // maximum contribution from attempt count
+    this.ATTEMPT_CONFIDENCE_RATE = 0.04; // confidence gained per attempt
+    this.SCORE_CONFIDENCE_WEIGHT = 0.2;  // maximum contribution from score extremity
+    this.SCORE_MIDPOINT          = 5;    // midpoint of the 0-10 scoring scale
+    this.SCORE_HALF_RANGE        = 5;    // half-range of the 0-10 scoring scale
 
     // Warm-load model artifact if available
     this.loadModel().catch(() => {});
@@ -164,7 +170,10 @@ class MLModelService {
   }
 
   /**
-   * Predict using the loaded XGBoost model
+   * Predict using the loaded linear-regression model artifact.
+   * Confidence is derived from input quality (attempt count and score clarity)
+   * rather than prediction distance from a fixed center — this ensures average
+   * predictions are not wrongly marked as low-confidence.
    * @private
    */
   predictWithModel(features) {
@@ -172,17 +181,21 @@ class MLModelService {
     const intercept = Number(this.modelArtifact?.intercept || 0);
     const minDays = Number(this.modelArtifact?.minDays || 1);
     const maxDays = Number(this.modelArtifact?.maxDays || 60);
-    const calibration = Number(this.modelArtifact?.confidenceCalibration || 1);
+    const calibration = Number(this.modelArtifact?.confidenceCalibration || 0.5);
 
     let raw = intercept;
     for (const featureName of this.featureSchema) {
       raw += Number(weights[featureName] || 0) * Number(features[featureName] || 0);
     }
 
-    // Confidence increases as prediction moves away from the uncertain mid-zone (~7 days),
-    // and calibration shifts baseline confidence for the artifact.
-    const centeredConfidence = Math.abs(raw - this.reviewCenterDays) / this.confidenceScaleDivisor;
-    const confidence = Math.max(0, Math.min(1, centeredConfidence + calibration));
+    // Confidence based on input quality:
+    //   - attempt factor: more practice data → higher certainty (caps at MAX_ATTEMPT_CONFIDENCE)
+    //   - score extremity: clearly high or clearly low scores are more predictable
+    const attemptFactor  = Math.min(this.MAX_ATTEMPT_CONFIDENCE, features.attemptsCount * this.ATTEMPT_CONFIDENCE_RATE);
+    const scoreExtremity = Math.abs(features.latestScore - this.SCORE_MIDPOINT) / this.SCORE_HALF_RANGE; // 0 at score=5, 1 at 0 or 10
+    const scoreFactor    = scoreExtremity * this.SCORE_CONFIDENCE_WEIGHT;
+    const confidence     = Math.max(0, Math.min(1, calibration + attemptFactor + scoreFactor));
+
     const days = Math.max(minDays, Math.min(maxDays, Math.round(raw)));
 
     return {
@@ -195,8 +208,22 @@ class MLModelService {
   }
 
   /**
-   * Fallback prediction using spaced repetition principles
-   * Based on SM-2 algorithm concepts
+   * Fallback prediction using the SM-2 spaced-repetition algorithm.
+   *
+   * SM-2 core rules:
+   *   - Quality q = latestScore / 2  (maps 0-10 → 0-5)
+   *   - EF (ease factor) starts at 2.5, adjusted each review:
+   *       EF' = EF + 0.1 − (5 − q)(0.08 + (5 − q) × 0.02)   [min 1.3]
+   *   - Intervals:
+   *       I(1) = 1 day
+   *       I(2) = 6 days
+   *       I(n) = round(I(n-1) × EF)
+   *   - If q < 3 (score < 6) restart sequence from I = 1
+   *
+   * Extended with:
+   *   - recentTrend modifier  (improving → longer, declining → shorter)
+   *   - repeatedWrongCount penalty (strong reduction for persistent mistakes)
+   *   - Forgetting-curve correction (very long gap + weak score → reduce interval)
    * @private
    */
   predictWithFallback(
@@ -207,45 +234,57 @@ class MLModelService {
     recentTrend = 0,
     repeatedWrongCount = 0
   ) {
-    // Calculate ease factor based on performance (2.5 is default, range 1.3-2.5)
+    // SM-2 quality: 0–5 scale
+    const quality = latestScore / 2;
+
+    // Ease factor derived from combined performance (SM-2 EF formula)
     const performanceRatio = (latestScore + avgScore) / 20; // 0 to 1
-    const easeFactor = 1.3 + (performanceRatio * 1.2); // 1.3 to 2.5
-    
-    // Base interval calculation
+    let easeFactor = 1.3 + performanceRatio * 1.2; // initialise in [1.3, 2.5]
+    const efDelta = 0.1 - (5 - quality) * (0.08 + (5 - quality) * 0.02);
+    easeFactor = Math.max(1.3, Math.min(2.5, easeFactor + efDelta));
+
+    // Base interval (SM-2 schedule)
     let interval;
-    
-    if (attemptsCount === 1) {
-      // First review: 1-3 days based on score
-      interval = latestScore >= 7 ? 3 : latestScore >= 5 ? 2 : 1;
+    if (attemptsCount <= 1) {
+      // First review
+      interval = quality >= 3.5 ? 3 : quality >= 2.5 ? 2 : 1;
     } else if (attemptsCount === 2) {
-      // Second review: 3-7 days
-      interval = latestScore >= 7 ? 7 : latestScore >= 5 ? 5 : 3;
+      // Second review
+      interval = quality >= 3.5 ? 6 : quality >= 2.5 ? 4 : 2;
+    } else if (quality < 3) {
+      // Failed recall → restart sequence
+      interval = 1;
     } else {
-      // Subsequent reviews: use spaced repetition formula
+      // Subsequent successful reviews: I(n) = I(n-1) * EF
       const previousInterval = Math.max(daysSinceLastAttempt, 1);
       interval = Math.round(previousInterval * easeFactor);
     }
-    
-    // Apply performance modifier
-    if (latestScore < 5) {
-      // Poor performance: reduce interval significantly
-      interval = Math.max(1, Math.floor(interval * 0.5));
-    } else if (latestScore >= 9) {
-      // Excellent performance: increase interval
-      interval = Math.min(60, Math.ceil(interval * 1.3));
+
+    // Trend modifier
+    if (recentTrend > 2) {
+      interval = Math.ceil(interval * 1.25);
+    } else if (recentTrend > 0.5) {
+      interval = Math.ceil(interval * 1.1);
+    } else if (recentTrend < -2) {
+      interval = Math.floor(interval * 0.7);
+    } else if (recentTrend < -0.5) {
+      interval = Math.floor(interval * 0.85);
     }
 
-    // Trend and repeated mistakes adjustments
-    if (recentTrend > 1.5) {
-      interval = Math.ceil(interval * 1.15);
-    } else if (recentTrend < -1.5) {
-      interval = Math.floor(interval * 0.8);
+    // Repeated wrong-answer penalty
+    if (repeatedWrongCount >= 5) {
+      interval = Math.max(1, Math.floor(interval * 0.45));
+    } else if (repeatedWrongCount >= 3) {
+      interval = Math.max(1, Math.floor(interval * 0.6));
+    } else if (repeatedWrongCount >= 1) {
+      interval = Math.max(1, Math.floor(interval * 0.8));
     }
-    if (repeatedWrongCount >= 3) {
-      interval = Math.max(1, Math.floor(interval * 0.65));
+
+    // Forgetting-curve correction: long gap + weak score signals forgotten material
+    if (daysSinceLastAttempt > 30 && latestScore < 6) {
+      interval = Math.floor(interval * 0.6);
     }
-    
-    // Cap at reasonable bounds
+
     return Math.max(1, Math.min(60, Math.round(interval)));
   }
 
@@ -265,7 +304,7 @@ class MLModelService {
     return {
       loaded: this.modelLoaded,
       path: this.modelPath,
-      type: this.modelLoaded ? 'Artifact (Linear Regression)' : 'Fallback (Spaced Repetition)',
+      type: this.modelLoaded ? 'Artifact (Linear Regression v2 — SM-2 calibrated)' : 'Fallback (SM-2 Spaced Repetition)',
       version: this.modelVersion,
       featureSchema: this.featureSchema
     };
