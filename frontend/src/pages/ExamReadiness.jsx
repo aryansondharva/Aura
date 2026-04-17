@@ -181,7 +181,7 @@ const styles = {
   const [expandedPattern, setExpandedPattern] = useState(null);
   const [generatingAnswer, setGeneratingAnswer] = useState(null);
   const [editMode, setEditMode] = useState(false);
-  const [dashTab, setDashTab] = useState("overview"); // overview | questions | topics
+  const [dashTab, setDashTab] = useState("overview"); // overview | questions | topics | output
 
   // ── Share state ──────────────────────────────────
   const [shareLink, setShareLink] = useState(null);
@@ -259,6 +259,85 @@ const styles = {
     }
     return "You are already in a strong GTU scoring zone.";
   };
+
+  const outputPhaseInsights = useMemo(() => {
+    const overallScore = gtuPowerInsights.overallReadinessScore;
+    const projectedSEE = readinessScore?.projectedSEE ?? Math.round((overallScore / 100) * 70);
+    const willPass =
+      readinessScore?.willPass !== undefined
+        ? readinessScore.willPass
+        : overallScore >= GTU_PASS_THRESHOLD;
+
+    const recommendations = Array.isArray(readinessScore?.recommendations)
+      ? readinessScore.recommendations
+      : [];
+
+    const topQuestionOutputs = [...(patterns || [])]
+      .sort((a, b) => (b.frequency_count || 0) - (a.frequency_count || 0))
+      .slice(0, 5);
+
+    const actionQueue = [];
+
+    if (gtuPowerInsights.passGap > 0) {
+      actionQueue.push({
+        priority: "high",
+        title: "Close pass-safety gap",
+        detail: `Recover ~${gtuPowerInsights.passGap.toFixed(0)}% to cross GTU pass-safety.`,
+      });
+    } else if (gtuPowerInsights.rankGap > 0) {
+      actionQueue.push({
+        priority: "medium",
+        title: "Push to strong scoring zone",
+        detail: `Gain ~${gtuPowerInsights.rankGap.toFixed(0)}% to enter strong GTU scoring.`,
+      });
+    } else {
+      actionQueue.push({
+        priority: "low",
+        title: "Defend your strong zone",
+        detail: "Stay consistent with timed GTU full-paper revisions.",
+      });
+    }
+
+    if (gtuPowerInsights.dailyPatternTarget) {
+      actionQueue.push({
+        priority: "medium",
+        title: "Daily output target",
+        detail: `Complete ${gtuPowerInsights.dailyPatternTarget} high-yield pattern${gtuPowerInsights.dailyPatternTarget === 1 ? "" : "s"} per day.`,
+      });
+    }
+
+    actionQueue.push({
+      priority: gtuPowerInsights.longQuestionShare >= 50 ? "high" : "medium",
+      title: "Long-question strategy",
+      detail: `Long questions contribute ${gtuPowerInsights.longQuestionShare}% of repeated patterns.`,
+    });
+
+    if (gtuPowerInsights.weakTopics.length > 0) {
+      const weakTopicNames = gtuPowerInsights.weakTopics
+        .map((topic) => topic.topicName)
+        .filter(Boolean)
+        .slice(0, 2)
+        .join(", ");
+      actionQueue.push({
+        priority: "high",
+        title: "Weak-topic intervention",
+        detail: weakTopicNames
+          ? `Prioritize: ${weakTopicNames}.`
+          : "Prioritize your weakest topics first.",
+      });
+    }
+
+    return {
+      projectedSEE,
+      willPass,
+      topQuestionOutputs,
+      actionQueue,
+      recommendations: recommendations.slice(0, 3),
+      sevenDayPatternGoal: gtuPowerInsights.dailyPatternTarget
+        ? gtuPowerInsights.dailyPatternTarget * 7
+        : null,
+    };
+  }, [gtuPowerInsights, readinessScore, patterns]);
 
   // ══════════════════════════════════════════════════
   //  API CALLS
@@ -1476,6 +1555,7 @@ const styles = {
                 { id: "overview", label: "Overview", icon: <Award size={13} /> },
                 { id: "questions", label: "Questions", icon: <Target size={13} /> },
                 { id: "topics", label: "Topics", icon: <Layers size={13} /> },
+                { id: "output", label: "Output", icon: <Sparkles size={13} /> },
               ].map((tab) => (
                 <button
                   key={tab.id}
@@ -1842,6 +1922,145 @@ const styles = {
                     <p style={{ fontSize: "13px" }}>No patterns yet — upload papers and run AI Analysis.</p>
                   </div>
                 )}
+              </div>
+            )}
+
+
+            {/* ── OUTPUT TAB ── */}
+            {dashTab === "output" && (
+              <div className="row g-3">
+                <div className="col-lg-4">
+                  <div className="profile-card h-100">
+                    <h6 className="mb-3" style={{ fontWeight: 600 }}>
+                      <Award size={16} className="me-2" style={{ color: "#edb437" }} />
+                      Result Snapshot
+                    </h6>
+                    <div className="p-3 rounded mb-2" style={{ backgroundColor: "#0f0f1a" }}>
+                      <div style={{ fontSize: "11px", color: "#888" }}>Current readiness</div>
+                      <div style={{ fontSize: "22px", fontWeight: 700, color: "#edb437" }}>
+                        {gtuPowerInsights.overallReadinessScore.toFixed(0)}%
+                      </div>
+                    </div>
+                    <div className="p-3 rounded mb-2" style={{ backgroundColor: "#0f0f1a" }}>
+                      <div style={{ fontSize: "11px", color: "#888" }}>Projected SEE</div>
+                      <div style={{ fontSize: "18px", fontWeight: 700 }}>
+                        {outputPhaseInsights.projectedSEE}/70
+                      </div>
+                    </div>
+                    <div
+                      className="p-2 rounded text-center"
+                      style={{
+                        fontSize: "12px",
+                        fontWeight: 600,
+                        background: outputPhaseInsights.willPass
+                          ? "rgba(34,197,94,0.15)"
+                          : "rgba(239,68,68,0.15)",
+                        color: outputPhaseInsights.willPass ? "#22c55e" : "#ef4444",
+                        border: `1px solid ${outputPhaseInsights.willPass ? "rgba(34,197,94,0.3)" : "rgba(239,68,68,0.3)"}`,
+                      }}
+                    >
+                      {outputPhaseInsights.willPass ? "✅ Pass Trajectory" : "⚠️ Pass Risk"}
+                    </div>
+                    {outputPhaseInsights.sevenDayPatternGoal && (
+                      <div className="mt-2" style={{ fontSize: "11px", color: "#888" }}>
+                        7-day target: {outputPhaseInsights.sevenDayPatternGoal} high-yield pattern revisions.
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="col-lg-8">
+                  <div className="profile-card h-100">
+                    <h6 className="mb-3" style={{ fontWeight: 600 }}>
+                      <Target size={16} className="me-2" style={{ color: "#edb437" }} />
+                      Output Action Queue
+                    </h6>
+                    <div className="row g-2">
+                      {outputPhaseInsights.actionQueue.map((item, idx) => (
+                        <div key={idx} className="col-md-6">
+                          <div
+                            className="p-3 rounded h-100"
+                            style={{
+                              backgroundColor: "#0f0f1a",
+                              border: "1px solid rgba(255,255,255,0.05)",
+                            }}
+                          >
+                            <div className="d-flex align-items-center mb-1">
+                              {item.priority === "high" ? (
+                                <AlertCircle size={13} className="text-danger me-2" />
+                              ) : (
+                                <CheckCircle2 size={13} className="text-success me-2" />
+                              )}
+                              <span style={{ fontSize: "12px", fontWeight: 600 }}>{item.title}</span>
+                            </div>
+                            <div style={{ fontSize: "11px", color: "#888" }}>{item.detail}</div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    {outputPhaseInsights.recommendations.length > 0 && (
+                      <div className="mt-3">
+                        <h6 style={{ fontSize: "12px", color: "#888" }}>AI Priority Notes</h6>
+                        {outputPhaseInsights.recommendations.map((rec, i) => (
+                          <div
+                            key={i}
+                            className="p-2 rounded mb-2"
+                            style={{ backgroundColor: "#0f0f1a", fontSize: "12px" }}
+                          >
+                            <span style={{ color: "#ddd" }}>{rec.message}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="col-12">
+                  <div className="profile-card">
+                    <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                      <h6 className="mb-0" style={{ fontWeight: 600 }}>
+                        <FileText size={16} className="me-2" style={{ color: "#edb437" }} />
+                        Output Question Set (Most Repeated)
+                      </h6>
+                      <button
+                        className="btn btn-sm px-3"
+                        style={{
+                          borderRadius: "50px",
+                          border: "1px solid rgba(237,180,55,0.3)",
+                          color: "#edb437",
+                          fontSize: "11px",
+                        }}
+                        onClick={() => setDashTab("questions")}
+                      >
+                        Open Questions Tab
+                      </button>
+                    </div>
+                    {outputPhaseInsights.topQuestionOutputs.length > 0 ? (
+                      <div className="row g-2">
+                        {outputPhaseInsights.topQuestionOutputs.map((pattern) => (
+                          <div key={pattern.pattern_id} className="col-md-6">
+                            <div
+                              className="p-3 rounded h-100"
+                              style={{
+                                backgroundColor: "#0f0f1a",
+                                border: "1px solid rgba(255,255,255,0.05)",
+                              }}
+                            >
+                              <div className="mb-1" style={{ fontSize: "11px", color: "#edb437", fontWeight: 700 }}>
+                                {pattern.frequency_count || 1}× asked · {pattern.marks || "?"} marks
+                              </div>
+                              <div style={{ fontSize: "12px", color: "#ddd" }}>{pattern.question_text}</div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div style={{ fontSize: "12px", color: "#666" }}>
+                        Run AI analysis to generate your output question set.
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
             )}
 
