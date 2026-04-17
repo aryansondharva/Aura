@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import Sidebar from "../components/Sidebar";
 import History from "../components/History";
 import useSession from "../utils/useSession";
@@ -41,6 +41,13 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import { useNavigate } from "react-router-dom";
 
 const BACKEND = import.meta.env.VITE_BACKEND_URL;
+const GTU_SUBJECT_PRESETS = [
+  { code: "3110005", short: "Maths-2", subject: "Engineering Mathematics II" },
+  { code: "3110013", short: "DSA", subject: "Data Structures" },
+  { code: "3110014", short: "DBMS", subject: "Database Management Systems" },
+  { code: "3110016", short: "OS", subject: "Operating System" },
+  { code: "3110007", short: "PPS", subject: "Programming for Problem Solving" },
+];
 
 /* ─── Custom Styles ─────────────────────────────────────── */
 const styles = {
@@ -130,9 +137,8 @@ const styles = {
   }),
 };
 
-const ExamReadiness = () => {
+  const ExamReadiness = () => {
   const {
-    user,
     userId,
     isLoggedIn,
     isSidebarOpen,
@@ -177,6 +183,57 @@ const ExamReadiness = () => {
   // ── Share state ──────────────────────────────────
   const [shareLink, setShareLink] = useState(null);
   const [showShareModal, setShowShareModal] = useState(false);
+
+  const applyGtuPreset = (preset) => {
+    setSubjectName(preset.subject);
+    if (!sessionName.trim()) {
+      setSessionName(`${preset.short} GTU Prep`);
+    }
+  };
+
+  const gtuPowerInsights = useMemo(() => {
+    const overall = readinessScore?.overall ?? sessionData?.session?.readiness_score ?? 0;
+    const examDateValue = sessionData?.session?.exam_date || examDate || null;
+    const daysLeft = examDateValue
+      ? Math.max(0, Math.ceil((new Date(examDateValue) - new Date()) / (1000 * 60 * 60 * 24)))
+      : null;
+
+    const frequencyByUnit = (patterns || []).reduce((acc, pattern) => {
+      const unit = pattern?.unit;
+      if (!unit) return acc;
+      acc[unit] = (acc[unit] || 0) + (pattern.frequency_count || 1);
+      return acc;
+    }, {});
+
+    const highYieldUnits = Object.entries(frequencyByUnit)
+      .map(([unit, frequency]) => ({ unit: Number(unit), frequency }))
+      .sort((a, b) => b.frequency - a.frequency)
+      .slice(0, 3);
+
+    const weakTopics = (readinessScore?.topicScores || [])
+      .filter((topic) => topic.mastery === "weak" || (topic.avgPercent ?? 0) < 40)
+      .sort((a, b) => (a.avgPercent ?? 0) - (b.avgPercent ?? 0))
+      .slice(0, 3);
+
+    const longQuestionCount = (patterns || []).filter((p) => p.appears_in_long).length;
+    const longQuestionShare = patterns?.length
+      ? Math.round((longQuestionCount / patterns.length) * 100)
+      : 0;
+
+    return {
+      overall,
+      daysLeft,
+      highYieldUnits,
+      weakTopics,
+      longQuestionShare,
+      passGap: overall < 40 ? 40 - overall : 0,
+      rankGap: overall < 65 ? 65 - overall : 0,
+      dailyPatternTarget:
+        daysLeft && daysLeft > 0 && patterns?.length
+          ? Math.max(1, Math.ceil(patterns.length / daysLeft))
+          : null,
+    };
+  }, [readinessScore, sessionData, examDate, patterns]);
 
   // ══════════════════════════════════════════════════
   //  API CALLS
@@ -846,6 +903,35 @@ const ExamReadiness = () => {
                 </div>
 
                 <div className="row g-3 mb-4">
+                  <div className="col-12">
+                    <label className="form-label small mb-2" style={{ color: "#aaa" }}>
+                      GTU Quick Subject Presets
+                    </label>
+                    <div className="d-flex gap-2 flex-wrap">
+                      {GTU_SUBJECT_PRESETS.map((preset) => (
+                        <button
+                          key={preset.code}
+                          type="button"
+                          className="btn btn-sm px-3"
+                          style={{
+                            borderRadius: "50px",
+                            border:
+                              subjectName === preset.subject
+                                ? "1px solid rgba(237,180,55,0.8)"
+                                : "1px solid rgba(255,255,255,0.15)",
+                            color: subjectName === preset.subject ? "#edb437" : "#aaa",
+                            background:
+                              subjectName === preset.subject ? "rgba(237,180,55,0.08)" : "transparent",
+                            fontSize: "11px",
+                            fontWeight: 600,
+                          }}
+                          onClick={() => applyGtuPreset(preset)}
+                        >
+                          {preset.short} · {preset.code}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                   <div className="col-md-6">
                     <label className="form-label small" style={{ color: "#aaa" }}>Subject (optional)</label>
                     <input
@@ -1501,6 +1587,83 @@ const ExamReadiness = () => {
                       {patterns.length}
                     </h3>
                     <span style={{ fontSize: "12px", color: "#888" }}>Question Patterns</span>
+                  </div>
+                </div>
+
+                <div className="col-12">
+                  <div className="profile-card">
+                    <h6 className="mb-3" style={{ fontWeight: 600 }}>
+                      <Sparkles size={16} className="me-2" style={{ color: "#edb437" }} />
+                      GTU Power Insights
+                    </h6>
+
+                    <div className="row g-3">
+                      <div className="col-md-4">
+                        <div className="p-3 rounded" style={{ backgroundColor: "#0f0f1a" }}>
+                          <div style={{ fontSize: "11px", color: "#888" }}>Exam Countdown</div>
+                          <div style={{ fontSize: "20px", fontWeight: 700, color: "#edb437" }}>
+                            {gtuPowerInsights.daysLeft == null
+                              ? "Set exam date"
+                              : `${gtuPowerInsights.daysLeft} day${gtuPowerInsights.daysLeft === 1 ? "" : "s"} left`}
+                          </div>
+                          {gtuPowerInsights.dailyPatternTarget && (
+                            <div style={{ fontSize: "11px", color: "#aaa" }}>
+                              Target {gtuPowerInsights.dailyPatternTarget} pattern{gtuPowerInsights.dailyPatternTarget === 1 ? "" : "s"} per day
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="col-md-4">
+                        <div className="p-3 rounded h-100" style={{ backgroundColor: "#0f0f1a" }}>
+                          <div style={{ fontSize: "11px", color: "#888", marginBottom: "6px" }}>High-yield Units</div>
+                          {gtuPowerInsights.highYieldUnits.length > 0 ? (
+                            gtuPowerInsights.highYieldUnits.map((unit) => (
+                              <div key={unit.unit} style={{ fontSize: "12px", marginBottom: "4px" }}>
+                                <span style={{ color: "#edb437", fontWeight: 700 }}>Unit {unit.unit}</span>
+                                <span style={{ color: "#666" }}> · {unit.frequency} repeat hits</span>
+                              </div>
+                            ))
+                          ) : (
+                            <div style={{ fontSize: "12px", color: "#666" }}>Run analysis for unit trends</div>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="col-md-4">
+                        <div className="p-3 rounded h-100" style={{ backgroundColor: "#0f0f1a" }}>
+                          <div style={{ fontSize: "11px", color: "#888", marginBottom: "6px" }}>Action Focus</div>
+                          {gtuPowerInsights.weakTopics.length > 0 ? (
+                            gtuPowerInsights.weakTopics.map((topic) => (
+                              <div key={topic.syllabusId} style={{ fontSize: "12px", marginBottom: "4px" }}>
+                                <span style={{ color: "#ef4444", fontWeight: 700 }}>
+                                  {(topic.avgPercent ?? 0).toFixed(0)}%
+                                </span>
+                                <span style={{ color: "#aaa" }}> · {topic.topicName}</span>
+                              </div>
+                            ))
+                          ) : (
+                            <div style={{ fontSize: "12px", color: "#22c55e" }}>No weak topics detected</div>
+                          )}
+                          <div style={{ fontSize: "11px", color: "#666", marginTop: "8px" }}>
+                            Long-question weight in patterns: {gtuPowerInsights.longQuestionShare}%
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {(gtuPowerInsights.passGap > 0 || gtuPowerInsights.rankGap > 0) && (
+                      <div
+                        className="mt-3 p-2 rounded"
+                        style={{ background: "rgba(237,180,55,0.06)", border: "1px solid rgba(237,180,55,0.15)" }}
+                      >
+                        <small style={{ color: "#aaa" }}>
+                          {gtuPowerInsights.passGap > 0
+                            ? `Need ~${gtuPowerInsights.passGap.toFixed(0)}% more to cross GTU pass-safety zone.`
+                            : `Need ~${gtuPowerInsights.rankGap.toFixed(0)}% more to reach strong GTU scoring zone.`}
+                        </small>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
