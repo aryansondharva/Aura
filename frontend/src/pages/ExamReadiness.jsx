@@ -1602,7 +1602,7 @@ const styles = {
                         <div className="p-3 rounded" style={{ backgroundColor: "#0f0f1a" }}>
                           <div style={{ fontSize: "11px", color: "#888" }}>Exam Countdown</div>
                           <div style={{ fontSize: "20px", fontWeight: 700, color: "#edb437" }}>
-                            {gtuPowerInsights.daysLeft == null
+                            {gtuPowerInsights.daysLeft === null || gtuPowerInsights.daysLeft === undefined
                               ? "Set exam date"
                               : `${gtuPowerInsights.daysLeft} day${gtuPowerInsights.daysLeft === 1 ? "" : "s"} left`}
                           </div>
