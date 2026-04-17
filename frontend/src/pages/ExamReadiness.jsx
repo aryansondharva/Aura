@@ -250,6 +250,16 @@ const styles = {
     };
   }, [readinessScore, sessionData, examDate, patterns]);
 
+  const getGtuGapMessage = () => {
+    if (gtuPowerInsights.passGap > 0) {
+      return `Need ~${gtuPowerInsights.passGap.toFixed(0)}% more to cross GTU pass-safety zone.`;
+    }
+    if (gtuPowerInsights.rankGap > 0) {
+      return `Need ~${gtuPowerInsights.rankGap.toFixed(0)}% more to reach strong GTU scoring zone.`;
+    }
+    return "You are already in a strong GTU scoring zone.";
+  };
+
   // ══════════════════════════════════════════════════
   //  API CALLS
   // ══════════════════════════════════════════════════
@@ -1673,11 +1683,7 @@ const styles = {
                         style={{ background: "rgba(237,180,55,0.06)", border: "1px solid rgba(237,180,55,0.15)" }}
                       >
                         <small style={{ color: "#aaa" }}>
-                          {gtuPowerInsights.passGap > 0
-                            ? `Need ~${gtuPowerInsights.passGap.toFixed(0)}% more to cross GTU pass-safety zone.`
-                            : gtuPowerInsights.rankGap > 0
-                              ? `Need ~${gtuPowerInsights.rankGap.toFixed(0)}% more to reach strong GTU scoring zone.`
-                              : "You are already in a strong GTU scoring zone."}
+                          {getGtuGapMessage()}
                         </small>
                       </div>
                     )}
