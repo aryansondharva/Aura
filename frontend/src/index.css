@@ -720,6 +720,146 @@ textarea::-webkit-input-placeholder {
   padding-bottom: var(--space-4xl);
 }
 
+.java-native-wrap {
+  position: relative;
+  isolation: isolate;
+}
+
+.java-native-wrap::before {
+  content: "";
+  position: absolute;
+  inset: -26px -18px;
+  z-index: -2;
+  border-radius: 30px;
+  background:
+    radial-gradient(circle at 18% 10%, rgba(237, 180, 55, 0.2), transparent 38%),
+    linear-gradient(160deg, rgba(14, 14, 14, 0.92), rgba(5, 5, 5, 0.95));
+}
+
+.java-native-wrap::after {
+  content: "";
+  position: absolute;
+  inset: -26px -18px;
+  z-index: -1;
+  border-radius: 30px;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+  background-size: 78px 78px;
+  mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.35), transparent 90%);
+  opacity: 0.15;
+}
+
+.java-native-header,
+.java-native-ask {
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 18px 46px -24px rgba(0, 0, 0, 0.62);
+  backdrop-filter: blur(14px);
+}
+
+.java-native-header {
+  padding: 20px 24px;
+  background: linear-gradient(135deg, rgba(17, 17, 17, 0.95), rgba(5, 5, 5, 0.95));
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.java-native-titlebox {
+  min-width: 0;
+}
+
+.java-native-lock {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border-radius: 999px;
+  padding: 5px 10px;
+  font-size: 0.76rem;
+  letter-spacing: 0.02em;
+  color: rgba(255, 255, 255, 0.78);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.06);
+  margin-bottom: 10px;
+}
+
+.java-native-title {
+  font-size: clamp(2rem, 4vw, 3rem) !important;
+  line-height: 1.03;
+  margin-bottom: 0;
+}
+
+.java-native-navbtn {
+  min-width: 118px;
+  padding: 9px 18px;
+  border-radius: 10px;
+}
+
+.java-native-ask {
+  padding: 24px;
+  background:
+    radial-gradient(circle at 18% 15%, rgba(237, 180, 55, 0.15), transparent 48%),
+    linear-gradient(165deg, rgba(26, 26, 26, 0.93), rgba(9, 9, 9, 0.95));
+}
+
+.java-native-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  color: var(--cs-primary);
+  margin-bottom: 14px;
+  font-weight: 500;
+}
+
+.java-native-inputrow {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 12px;
+}
+
+.java-native-input {
+  border-radius: 12px !important;
+  min-height: 88px;
+  font-size: 1.02rem;
+  padding: 14px 15px !important;
+}
+
+.java-native-askbtn {
+  min-width: 86px;
+  border-radius: 12px;
+}
+
+.java-native-prompts {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+
+.java-native-chip {
+  border-radius: 10px;
+  border-color: rgba(255, 255, 255, 0.36) !important;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.java-native-chip:hover {
+  border-color: rgba(237, 180, 55, 0.52) !important;
+}
+
+.java-native-answer {
+  margin-top: 14px;
+  background: linear-gradient(160deg, rgba(13, 13, 13, 0.95), rgba(28, 20, 5, 0.92));
+}
+
+.java-native-stat {
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: linear-gradient(160deg, rgba(18, 18, 18, 0.95), rgba(8, 8, 8, 0.95));
+  box-shadow: 0 16px 36px -22px rgba(0, 0, 0, 0.58);
+}
+
 .java-simple-header,
 .java-stat-card,
 .java-plan-card,
@@ -975,6 +1115,25 @@ textarea::-webkit-input-placeholder {
 @media (max-width: 768px) {
   .java-practice-shell {
     padding-top: 70px;
+  }
+
+  .java-native-wrap::before,
+  .java-native-wrap::after {
+    inset: -12px -8px;
+    border-radius: 20px;
+  }
+
+  .java-native-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .java-native-inputrow {
+    grid-template-columns: 1fr;
+  }
+
+  .java-native-askbtn {
+    min-height: 48px;
   }
 
   .java-ask-input-row {

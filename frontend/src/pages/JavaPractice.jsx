@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   EqualApproximately,
+  Lock,
   LoaderCircle,
   MessageSquareQuote,
   Search,
@@ -9,9 +10,7 @@ import {
 import Sidebar from "../components/Sidebar";
 import History from "../components/History";
 import useSession from "../utils/useSession";
-import {
-  javaPracticeStats,
-} from "../data/javaPractice";
+import { javaPracticeStats } from "../data/javaPractice";
 
 const JavaPractice = () => {
   const {
@@ -85,49 +84,55 @@ const JavaPractice = () => {
       </div>
 
       <div className="chat-content flex-grow-1 p-4 text-white d-flex flex-column">
-        <div className="container java-practice-shell">
-          <section className="java-simple-header mb-4">
-            <div className="java-header-row">
-              <h1 className="java-hero-title">Ask from OOP PDFs</h1>
-              <div className="java-header-actions">
-                <button
-                  className="btn btn-cs btn-sm"
-                  onClick={() => navigate("/java-important-pdfs")}
-                >
-                  JAVA
-                </button>
-                <button
-                  className="btn btn-outline-light btn-sm"
-                  onClick={() => navigate("/java-assignments")}
-                >
-                  Assignments
-                </button>
-              </div>
+        <div className="container java-practice-shell java-native-wrap">
+          <section className="java-native-header mb-4">
+            <div className="java-native-titlebox">
+              <span className="java-native-lock">
+                <Lock size={14} />
+                PDF Locked
+              </span>
+              <h1 className="java-native-title">Ask from OOP PDFs</h1>
+            </div>
+            <div className="java-header-actions">
+              <button
+                className="btn btn-cs btn-sm java-native-navbtn"
+                onClick={() => navigate("/java-important-pdfs")}
+              >
+                JAVA
+              </button>
+              <button
+                className="btn btn-outline-light btn-sm java-native-navbtn"
+                onClick={() => navigate("/java-assignments")}
+              >
+                Assignments
+              </button>
             </div>
           </section>
 
-          <section className="java-ask-panel mb-4">
-            <div className="java-panel-top">
+          <section className="java-native-ask mb-4">
+            <div className="java-native-label">
               <Search size={18} />
               <span>PDF only answer</span>
             </div>
-            <div className="java-ask-input-row">
+
+            <div className="java-native-inputrow">
               <textarea
-                className="form-control java-ask-textarea"
+                className="form-control java-ask-textarea java-native-input"
                 value={question}
                 onChange={(e) => setQuestion(e.target.value)}
                 placeholder="Ask your Java question"
                 rows={3}
               />
               <button
-                className="btn btn-cs"
+                className="btn btn-cs java-native-askbtn"
                 onClick={() => handleAskPdfOnly()}
                 disabled={asking}
               >
                 {asking ? <LoaderCircle className="java-spin" size={18} /> : "Ask"}
               </button>
             </div>
-            <div className="java-quick-prompts">
+
+            <div className="java-native-prompts">
               {[
                 "What is polymorphism?",
                 "Explain exception handling.",
@@ -135,7 +140,7 @@ const JavaPractice = () => {
               ].map((item) => (
                 <button
                   key={item}
-                  className="btn btn-outline-light btn-sm"
+                  className="btn btn-outline-light btn-sm java-native-chip"
                   onClick={() => handleAskPdfOnly(item)}
                   disabled={asking}
                 >
@@ -143,11 +148,12 @@ const JavaPractice = () => {
                 </button>
               ))}
             </div>
+
             {askError ? (
               <div className="java-answer-card java-answer-error">{askError}</div>
             ) : null}
             {javaAnswer ? (
-              <div className="java-answer-card">
+              <div className="java-answer-card java-native-answer">
                 <div className="java-detail-label">
                   <MessageSquareQuote size={16} />
                   Answer
@@ -169,7 +175,7 @@ const JavaPractice = () => {
           <section className="row g-3 mb-4">
             {javaPracticeStats.map((item) => (
               <div className="col-6 col-lg-3" key={item.label}>
-                <div className="java-stat-card">
+                <div className="java-stat-card java-native-stat">
                   <p className="java-stat-value">{item.value}</p>
                   <span>{item.label}</span>
                 </div>
