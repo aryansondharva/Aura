@@ -760,11 +760,14 @@ textarea::-webkit-input-placeholder {
 
 .java-native-header {
   padding: 20px 24px;
-  background: linear-gradient(135deg, rgba(17, 17, 17, 0.95), rgba(5, 5, 5, 0.95));
+  background:
+    radial-gradient(circle at 20% 10%, rgba(237, 180, 55, 0.18), transparent 42%),
+    linear-gradient(135deg, rgba(17, 17, 17, 0.95), rgba(5, 5, 5, 0.95));
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 18px;
+  animation: javaRise 0.55s ease both;
 }
 
 .java-native-titlebox {
@@ -786,15 +789,22 @@ textarea::-webkit-input-placeholder {
 }
 
 .java-native-title {
-  font-size: clamp(2rem, 4vw, 3rem) !important;
+  font-size: clamp(2.15rem, 4.2vw, 3.3rem) !important;
   line-height: 1.03;
   margin-bottom: 0;
 }
 
+.java-native-subtitle {
+  margin-top: 10px;
+  font-size: 0.97rem;
+  color: rgba(255, 255, 255, 0.72);
+  max-width: 700px;
+}
+
 .java-native-navbtn {
-  min-width: 118px;
+  min-width: 128px;
   padding: 9px 18px;
-  border-radius: 10px;
+  border-radius: 12px;
 }
 
 .java-native-ask {
@@ -802,6 +812,8 @@ textarea::-webkit-input-placeholder {
   background:
     radial-gradient(circle at 18% 15%, rgba(237, 180, 55, 0.15), transparent 48%),
     linear-gradient(165deg, rgba(26, 26, 26, 0.93), rgba(9, 9, 9, 0.95));
+  animation: javaRise 0.65s ease both;
+  animation-delay: 60ms;
 }
 
 .java-native-label {
@@ -811,6 +823,25 @@ textarea::-webkit-input-placeholder {
   color: var(--cs-primary);
   margin-bottom: 14px;
   font-weight: 500;
+}
+
+.java-native-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.java-native-meta-chip {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 5px 10px;
+  font-size: 0.73rem;
+  letter-spacing: 0.02em;
+  color: rgba(255, 255, 255, 0.78);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.05);
 }
 
 .java-native-inputrow {
@@ -827,8 +858,15 @@ textarea::-webkit-input-placeholder {
 }
 
 .java-native-askbtn {
-  min-width: 86px;
+  min-width: 98px;
   border-radius: 12px;
+  font-weight: 600;
+  box-shadow: 0 12px 24px -12px rgba(237, 180, 55, 0.5);
+}
+
+.java-native-askbtn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 16px 26px -14px rgba(237, 180, 55, 0.55);
 }
 
 .java-native-prompts {
@@ -846,6 +884,13 @@ textarea::-webkit-input-placeholder {
 
 .java-native-chip:hover {
   border-color: rgba(237, 180, 55, 0.52) !important;
+}
+
+.java-native-hint {
+  margin-top: 12px;
+  margin-bottom: 0;
+  color: rgba(255, 255, 255, 0.62);
+  font-size: 0.9rem;
 }
 
 .java-native-answer {
@@ -926,6 +971,25 @@ textarea::-webkit-input-placeholder {
   border: 1px solid rgba(255, 255, 255, 0.1);
   background: linear-gradient(160deg, rgba(18, 18, 18, 0.95), rgba(8, 8, 8, 0.95));
   box-shadow: 0 16px 36px -22px rgba(0, 0, 0, 0.58);
+  transition: transform 0.22s ease, border-color 0.22s ease, box-shadow 0.22s ease;
+  animation: javaRise 0.5s ease both;
+}
+
+.java-native-stat:hover {
+  transform: translateY(-3px);
+  border-color: rgba(237, 180, 55, 0.28);
+  box-shadow: 0 22px 34px -20px rgba(0, 0, 0, 0.62);
+}
+
+@keyframes javaRise {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .java-simple-header,
@@ -1194,6 +1258,10 @@ textarea::-webkit-input-placeholder {
   .java-native-header {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .java-native-subtitle {
+    font-size: 0.92rem;
   }
 
   .java-native-inputrow {

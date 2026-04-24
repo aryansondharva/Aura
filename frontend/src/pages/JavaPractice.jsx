@@ -92,14 +92,17 @@ const JavaPractice = () => {
                 <Lock size={14} />
                 PDF Locked
               </span>
-              <h1 className="java-native-title">Ask from OOP PDFs</h1>
+              <h1 className="java-native-title">Java Copilot for OOP</h1>
+              <p className="java-native-subtitle">
+                Ask fast and get source-based answers with clean code and output.
+              </p>
             </div>
             <div className="java-header-actions">
               <button
                 className="btn btn-cs btn-sm java-native-navbtn"
                 onClick={() => navigate("/java-important-pdfs")}
               >
-                JAVA
+                Important PDFs
               </button>
               <button
                 className="btn btn-outline-light btn-sm java-native-navbtn"
@@ -113,7 +116,12 @@ const JavaPractice = () => {
           <section className="java-native-ask mb-4">
             <div className="java-native-label">
               <Search size={18} />
-              <span>PDF only answer</span>
+              <span>Chat from your PDF library</span>
+            </div>
+            <div className="java-native-meta">
+              <span className="java-native-meta-chip">Source-cited</span>
+              <span className="java-native-meta-chip">Code + Output</span>
+              <span className="java-native-meta-chip">GTU-focused</span>
             </div>
 
             <div className="java-native-inputrow">
@@ -121,7 +129,7 @@ const JavaPractice = () => {
                 className="form-control java-ask-textarea java-native-input"
                 value={question}
                 onChange={(e) => setQuestion(e.target.value)}
-                placeholder="Ask your Java question"
+                placeholder="Ask your Java question here..."
                 rows={3}
               />
               <button
@@ -129,15 +137,15 @@ const JavaPractice = () => {
                 onClick={() => handleAskPdfOnly()}
                 disabled={asking}
               >
-                {asking ? <LoaderCircle className="java-spin" size={18} /> : "Ask"}
+                {asking ? <LoaderCircle className="java-spin" size={18} /> : "Ask Aura"}
               </button>
             </div>
 
             <div className="java-native-prompts">
               {[
-                "What is polymorphism?",
-                "Explain exception handling.",
-                "What is ArrayList?",
+                "Program for inheritance",
+                "Try-catch with output",
+                "ArrayList vs LinkedList",
               ].map((item) => (
                 <button
                   key={item}
@@ -152,6 +160,11 @@ const JavaPractice = () => {
 
             {askError ? (
               <div className="java-answer-card java-answer-error">{askError}</div>
+            ) : null}
+            {!javaAnswer && !askError ? (
+              <p className="java-native-hint">
+                Start with a quick prompt to generate your first PDF-grounded reply.
+              </p>
             ) : null}
             {javaAnswer ? (
               <div className="java-answer-card java-native-answer">
@@ -203,9 +216,12 @@ const JavaPractice = () => {
           </section>
 
           <section className="row g-3 mb-4">
-            {javaPracticeStats.map((item) => (
+            {javaPracticeStats.map((item, index) => (
               <div className="col-6 col-lg-3" key={item.label}>
-                <div className="java-stat-card java-native-stat">
+                <div
+                  className="java-stat-card java-native-stat"
+                  style={{ animationDelay: `${index * 70}ms` }}
+                >
                   <p className="java-stat-value">{item.value}</p>
                   <span>{item.label}</span>
                 </div>
