@@ -97,3 +97,6 @@ backend-js/model.json
 *.backup
 .cache/
 solution_project
+.OBJECT ORIENTED PROGRAMMING 
+*.pdf
+.pptx

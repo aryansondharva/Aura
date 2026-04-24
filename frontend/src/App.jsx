@@ -18,6 +18,7 @@ import Developers from "./pages/Developers";
 import VoiceAssistant from "./components/VoiceAssistant";
 import ExamReadiness from "./pages/ExamReadiness";
 import SharedAnalysis from "./pages/SharedAnalysis";
+import JavaPractice from "./pages/JavaPractice";
 
 function App() {
   return (
@@ -39,6 +40,7 @@ function App() {
         <Route path="/studymetrics" element={<Study_Metrics />} />
         <Route path="/settings" element={<Settings />} />
         <Route path="/exam-readiness" element={<ProtectedRoute><ExamReadiness /></ProtectedRoute>} />
+        <Route path="/java-practice" element={<ProtectedRoute><JavaPractice /></ProtectedRoute>} />
         <Route path="/shared/:token" element={<SharedAnalysis />} />
         
       </Routes>

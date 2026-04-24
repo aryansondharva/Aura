@@ -714,6 +714,375 @@ textarea::-webkit-input-placeholder {
   color: var(--cs-light-bg);
 }
 
+/* ========== JAVA PRACTICE ========== */
+.java-practice-shell {
+  padding-top: var(--space-4xl);
+  padding-bottom: var(--space-5xl);
+}
+
+.java-hero {
+  display: grid;
+  grid-template-columns: 1.4fr 0.9fr;
+  gap: var(--space-xl);
+  align-items: stretch;
+}
+
+.java-hero-copy,
+.java-hero-panel,
+.java-stat-card,
+.java-filter-bar,
+.java-unit-card,
+.java-plan-card,
+.java-day-card,
+.java-detail-card,
+.java-panel-card {
+  background: rgba(18, 18, 18, 0.82);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: var(--shadow-card);
+  backdrop-filter: blur(14px);
+}
+
+.java-hero-copy {
+  border-radius: 30px;
+  padding: clamp(24px, 4vw, 42px);
+  background:
+    radial-gradient(circle at top right, rgba(237, 180, 55, 0.28), transparent 34%),
+    linear-gradient(145deg, rgba(22, 22, 22, 0.95), rgba(10, 10, 10, 0.9));
+}
+
+.java-hero-pill,
+.java-unit-chip,
+.java-day-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(237, 180, 55, 0.25);
+  color: var(--cs-primary);
+  background: rgba(237, 180, 55, 0.1);
+}
+
+.java-hero-pill {
+  padding: 9px 14px;
+  font-size: 0.85rem;
+  margin-bottom: var(--space-xl);
+}
+
+.java-hero-title {
+  font-size: clamp(2.4rem, 5vw, 4.3rem) !important;
+  line-height: 1.05;
+  text-align: left;
+  margin-bottom: var(--space-lg);
+}
+
+.java-hero-text,
+.java-unit-card p,
+.java-day-card p,
+.java-panel-card p,
+.java-plan-head p {
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.java-hero-text {
+  max-width: 720px;
+  margin-bottom: var(--space-xl);
+  font-size: 1.05rem;
+}
+
+.java-hero-actions {
+  display: flex;
+  gap: var(--space-md);
+  flex-wrap: wrap;
+}
+
+.java-ask-panel {
+  margin-bottom: var(--space-xl);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 24px;
+  padding: var(--space-xl);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.java-ask-note {
+  margin-bottom: var(--space-lg);
+}
+
+.java-ask-input-row {
+  display: flex;
+  gap: var(--space-md);
+  align-items: stretch;
+  margin-bottom: var(--space-md);
+}
+
+.java-ask-textarea {
+  background-color: rgba(255, 255, 255, 0.05) !important;
+  color: var(--cs-white) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+  resize: vertical;
+}
+
+.java-ask-textarea::placeholder {
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.java-quick-prompts {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.java-answer-card {
+  margin-top: var(--space-lg);
+  padding: var(--space-xl);
+  border-radius: 20px;
+  background: rgba(12, 12, 12, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.java-answer-error {
+  color: #ffb4b4;
+}
+
+.java-source-list {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: var(--space-lg);
+}
+
+.java-source-chip {
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: rgba(237, 180, 55, 0.12);
+  border: 1px solid rgba(237, 180, 55, 0.22);
+  color: var(--cs-primary);
+  font-size: 0.82rem;
+}
+
+.java-spin {
+  animation: spin 0.8s linear infinite;
+}
+
+.java-hero-panel {
+  display: grid;
+  gap: var(--space-lg);
+  border-radius: 30px;
+  padding: var(--space-xl);
+  background:
+    radial-gradient(circle at bottom left, rgba(237, 180, 55, 0.18), transparent 38%),
+    linear-gradient(180deg, rgba(28, 28, 28, 0.92), rgba(10, 10, 10, 0.95));
+}
+
+.java-panel-card {
+  border-radius: 24px;
+  padding: var(--space-xl);
+}
+
+.java-panel-card.subtle {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.java-panel-top,
+.java-detail-label,
+.java-filter-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--cs-primary);
+  margin-bottom: var(--space-base);
+}
+
+.java-stat-card {
+  border-radius: 22px;
+  padding: 22px;
+  text-align: left;
+}
+
+.java-stat-value {
+  font-size: 2rem !important;
+  font-weight: 800;
+  color: var(--cs-primary) !important;
+  margin-bottom: 0;
+}
+
+.java-stat-card span {
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.java-filter-bar,
+.java-plan-card,
+.java-unit-card {
+  border-radius: 28px;
+  padding: var(--space-xl);
+}
+
+.java-filter-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-lg);
+}
+
+.java-filter-controls {
+  display: flex;
+  gap: var(--space-base);
+  min-width: min(100%, 380px);
+}
+
+.java-filter-controls .form-select {
+  background-color: rgba(255, 255, 255, 0.06);
+  color: var(--cs-white);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.java-unit-head {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-xl);
+  margin-bottom: var(--space-xl);
+}
+
+.java-unit-chip,
+.java-day-badge {
+  padding: 7px 14px;
+  font-size: 0.78rem;
+  margin-bottom: var(--space-base);
+}
+
+.java-unit-head h2,
+.java-plan-head h2 {
+  text-align: left;
+  margin-bottom: var(--space-sm);
+}
+
+.java-unit-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-content: flex-start;
+  justify-content: flex-end;
+  min-width: 240px;
+}
+
+.java-unit-meta span {
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.85rem;
+}
+
+.java-detail-card {
+  border-radius: 22px;
+  padding: var(--space-xl);
+  min-height: 100%;
+}
+
+.java-detail-card ul {
+  padding-left: 18px;
+}
+
+.java-detail-card li {
+  list-style: disc;
+  color: rgba(255, 255, 255, 0.82);
+  margin-bottom: 8px;
+}
+
+.java-code-block {
+  background: #0c0c0c;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 22px;
+  overflow: hidden;
+}
+
+.java-code-head {
+  padding: 12px 18px;
+  color: var(--cs-primary);
+  background: rgba(255, 255, 255, 0.04);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.java-code-block pre {
+  margin: 0;
+  padding: 20px;
+  color: #f7f3e8;
+  font-size: 0.92rem;
+  white-space: pre-wrap;
+}
+
+.java-day-card {
+  border-radius: 22px;
+  padding: var(--space-xl);
+  height: 100%;
+}
+
+.java-asset-card {
+  background: rgba(18, 18, 18, 0.82);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: var(--shadow-card);
+  backdrop-filter: blur(14px);
+  border-radius: 22px;
+  padding: var(--space-xl);
+  height: 100%;
+}
+
+.java-asset-badge {
+  display: inline-flex;
+  padding: 6px 12px;
+  border-radius: 999px;
+  margin-bottom: var(--space-base);
+  background: rgba(255, 255, 255, 0.07);
+  color: var(--cs-primary);
+  border: 1px solid rgba(237, 180, 55, 0.22);
+  font-size: 0.78rem;
+}
+
+.java-file-tag {
+  margin-top: var(--space-lg);
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.82rem;
+  word-break: break-word;
+}
+
+@media (max-width: 992px) {
+  .java-hero,
+  .java-unit-head,
+  .java-filter-bar {
+    grid-template-columns: 1fr;
+    display: grid;
+  }
+
+  .java-unit-meta {
+    justify-content: flex-start;
+    min-width: 0;
+  }
+
+  .java-filter-controls {
+    min-width: 0;
+    width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .java-practice-shell {
+    padding-top: 70px;
+  }
+
+  .java-filter-controls,
+  .java-hero-actions,
+  .java-ask-input-row {
+    flex-direction: column;
+  }
+
+  .java-hero-title {
+    font-size: 2.3rem !important;
+  }
+}
+
 /* ========== EXAM COMPONENTS ========== */
 .exam_rules h3 {
   font-size: var(--font-size-3xl);
@@ -1486,4 +1855,3 @@ canvas {
   .dev-cards-grid { grid-template-columns: 1fr; }
   .dev-stats-row { gap: 0; }
 }
-

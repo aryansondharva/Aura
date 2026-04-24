@@ -1,5 +1,5 @@
 import React from "react";
-import { ListTodo, FileSliders, ListTree, Notebook, ChartPie, BookOpenCheck, FolderArchive, History, User, Cog, Brain  } from 'lucide-react';
+import { ListTodo, FileSliders, ListTree, Notebook, ChartPie, BookOpenCheck, FolderArchive, History, User, Cog, Brain, CodeXml  } from 'lucide-react';
 import auraLogo from "../assets/recallo.png";
 import { Link, useLocation } from "react-router-dom";
 import { EqualApproximately } from "lucide-react";
@@ -10,6 +10,7 @@ const menuItems = [
   // { icon: <FileSliders />, label: "Your Resources", path: "/resource" },
   { icon: <ListTree />, label: "Create Topics", path: "/topics" },
   { icon: <Notebook />, label: "Study Metrics", path: "/studymetrics" },
+  { icon: <CodeXml />, label: "Java Practice", path: "/java-practice" },
   { icon: <Brain />, label: "Exam Readiness AI", path: "/exam-readiness" },
   { icon: <ChartPie />, label: "Progress", path: "/progress" },
   { icon: <BookOpenCheck />, label: "Exams", path: "/exam" },

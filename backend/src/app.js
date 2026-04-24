@@ -11,6 +11,7 @@ import progressRoutes from './routes/progressRoutes.js';
 import conversationRoutes from './routes/conversationRoutes.js';
 import userRoutes from './routes/userRoutes.js';
 import readinessRoutes from './routes/readinessRoutes.js';
+import javaPracticeRoutes from './routes/javaPracticeRoutes.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -89,6 +90,7 @@ app.use('/api', progressRoutes);
 app.use('/api', conversationRoutes);
 app.use('/api/user', userRoutes);
 app.use('/api', readinessRoutes);
+app.use('/api', javaPracticeRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
