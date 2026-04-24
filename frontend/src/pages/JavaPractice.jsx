@@ -1,13 +1,12 @@
-import React, { useMemo, useState } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   BookOpenCheck,
-  Code2,
   EqualApproximately,
-  Filter,
   GraduationCap,
   LoaderCircle,
   MessageSquareQuote,
+  NotebookPen,
   Search,
   Sparkles,
 } from "lucide-react";
@@ -18,7 +17,6 @@ import {
   javaPracticeStats,
   javaPracticeAssets,
   javaResourcePack,
-  javaPracticeUnits,
   javaWeeklyPlan,
 } from "../data/javaPractice";
 
@@ -33,24 +31,11 @@ const JavaPractice = () => {
   } = useSession();
   const navigate = useNavigate();
 
-  const [selectedUnit, setSelectedUnit] = useState("All");
-  const [selectedDifficulty, setSelectedDifficulty] = useState("All");
   const [question, setQuestion] = useState("");
   const [asking, setAsking] = useState(false);
   const [javaAnswer, setJavaAnswer] = useState("");
   const [answerSources, setAnswerSources] = useState([]);
   const [askError, setAskError] = useState("");
-
-  const filteredUnits = useMemo(() => {
-    return javaPracticeUnits.filter((unit) => {
-      const matchesUnit = selectedUnit === "All" || unit.unit === selectedUnit;
-      const matchesDifficulty =
-        selectedDifficulty === "All" ||
-        unit.difficulty === selectedDifficulty;
-
-      return matchesUnit && matchesDifficulty;
-    });
-  }, [selectedDifficulty, selectedUnit]);
 
   const handleAskPdfOnly = async (prefillQuestion) => {
     const nextQuestion = (prefillQuestion ?? question).trim();
@@ -115,12 +100,12 @@ const JavaPractice = () => {
                 GTU Java Practice Hub
               </span>
               <h1 className="java-hero-title">
-                Practice Java the way GTU students actually revise
+                Simple OOP help for GTU students
               </h1>
               <p className="java-hero-text">
-                Unit-wise drills, viva prompts, code snippets, and a simple
-                weekly plan so Aura becomes more useful for semester practice,
-                not just uploaded PDFs.
+                Ask questions and get answers from your OOP PDFs only. Use the
+                notes, assignments, practical list, and GTU paper in one simple
+                place.
               </p>
               <div className="java-ask-panel">
                 <div className="java-panel-top">
@@ -193,12 +178,6 @@ const JavaPractice = () => {
                 >
                   Add Your Notes
                 </button>
-                <button
-                  className="btn btn-outline-light"
-                  onClick={() => navigate("/chat")}
-                >
-                  Ask Aura for Help
-                </button>
               </div>
             </div>
 
@@ -206,19 +185,19 @@ const JavaPractice = () => {
               <div className="java-panel-card">
                 <div className="java-panel-top">
                   <Sparkles size={18} />
-                  <span>Current Focus</span>
+                  <span>Subject</span>
                 </div>
-                <h3>Java Programming - `3140705`</h3>
-                <p>Semester 4 friendly practice flow with theory + coding balance.</p>
+                <h3>Object Oriented Programming</h3>
+                <p>Semester practice support built around your own OOP material.</p>
               </div>
               <div className="java-panel-card subtle">
                 <div className="java-panel-top">
                   <BookOpenCheck size={18} />
-                  <span>Recommended Today</span>
+                  <span>Best Use</span>
                 </div>
                 <p>
-                  Revise Unit 3 and answer one thread-synchronization question
-                  before attempting a mock test.
+                  Ask theory questions here, then revise from assignments and
+                  the GTU paper.
                 </p>
               </div>
             </div>
@@ -235,114 +214,11 @@ const JavaPractice = () => {
             ))}
           </section>
 
-          <section className="java-filter-bar mb-4">
-            <div className="java-filter-title">
-              <Filter size={18} />
-              <span>Filter practice tracks</span>
-            </div>
-            <div className="java-filter-controls">
-              <select
-                className="form-select"
-                value={selectedUnit}
-                onChange={(e) => setSelectedUnit(e.target.value)}
-              >
-                <option value="All">All Units</option>
-                <option value="Unit 1">Unit 1</option>
-                <option value="Unit 2">Unit 2</option>
-                <option value="Unit 3">Unit 3</option>
-                <option value="Unit 4">Unit 4</option>
-                <option value="Unit 5">Unit 5</option>
-              </select>
-              <select
-                className="form-select"
-                value={selectedDifficulty}
-                onChange={(e) => setSelectedDifficulty(e.target.value)}
-              >
-                <option value="All">All Levels</option>
-                <option value="Beginner">Beginner</option>
-                <option value="Intermediate">Intermediate</option>
-                <option value="Advanced">Advanced</option>
-              </select>
-            </div>
-          </section>
-
-          <section className="row g-4 mb-5">
-            {filteredUnits.map((unit) => (
-              <div className="col-12" key={unit.id}>
-                <article className="java-unit-card">
-                  <div className="java-unit-head">
-                    <div>
-                      <span className="java-unit-chip">{unit.unit}</span>
-                      <h2>{unit.title}</h2>
-                      <p>{unit.whyItMatters}</p>
-                    </div>
-                    <div className="java-unit-meta">
-                      <span>{unit.semester}</span>
-                      <span>{unit.subjectCode}</span>
-                      <span>{unit.difficulty}</span>
-                      <span>{unit.examWeight} weight</span>
-                    </div>
-                  </div>
-
-                  <div className="row g-3">
-                    <div className="col-lg-4">
-                      <div className="java-detail-card">
-                        <div className="java-detail-label">
-                          <BookOpenCheck size={16} />
-                          Key Concepts
-                        </div>
-                        <ul>
-                          {unit.concepts.map((concept) => (
-                            <li key={concept}>{concept}</li>
-                          ))}
-                        </ul>
-                      </div>
-                    </div>
-
-                    <div className="col-lg-4">
-                      <div className="java-detail-card">
-                        <div className="java-detail-label">
-                          <Code2 size={16} />
-                          Practice Prompts
-                        </div>
-                        <ul>
-                          {unit.practice.map((item) => (
-                            <li key={item}>{item}</li>
-                          ))}
-                        </ul>
-                      </div>
-                    </div>
-
-                    <div className="col-lg-4">
-                      <div className="java-detail-card">
-                        <div className="java-detail-label">
-                          <MessageSquareQuote size={16} />
-                          Viva Ready
-                        </div>
-                        <ul>
-                          {unit.viva.map((question) => (
-                            <li key={question}>{question}</li>
-                          ))}
-                        </ul>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="java-code-block mt-3">
-                    <div className="java-code-head">Reference Snippet</div>
-                    <pre>{unit.snippet}</pre>
-                  </div>
-                </article>
-              </div>
-            ))}
-          </section>
-
           <section className="java-plan-card mb-5">
             <div className="java-plan-head">
-              <h2>Your OOP Study Pack</h2>
+              <h2>Important Study Material</h2>
               <p>
-                These cards are based on the `OBJECT ORIENTED PROGRAMMING`
-                folder you added in the project workspace.
+                Start from these files when you want fast revision.
               </p>
             </div>
 
@@ -362,10 +238,9 @@ const JavaPractice = () => {
 
           <section className="java-plan-card">
             <div className="java-plan-head">
-              <h2>5-Day Quick Revision Plan</h2>
+              <h2>Simple 5-Day Revision Plan</h2>
               <p>
-                Use this before internals, viva, or a GTU mock to keep practice
-                structured.
+                Follow this when exams or viva are near.
               </p>
             </div>
 
@@ -384,10 +259,10 @@ const JavaPractice = () => {
 
           <section className="java-plan-card mt-4">
             <div className="java-plan-head">
-              <h2>Assignments and Exam Practice</h2>
+              <h2>Assignments and Practical Help</h2>
               <p>
-                This is the practical part of the folder. It can later be wired
-                into quizzes, mock tests, and assignment-based trackers.
+                Use these files for coding practice, practical work, and exam
+                preparation.
               </p>
             </div>
 
@@ -399,6 +274,31 @@ const JavaPractice = () => {
                     <h3>{item.title}</h3>
                     <p>{item.note}</p>
                     <div className="java-file-tag">{item.fileName}</div>
+                  </div>
+                </div>
+                ))}
+              </div>
+            </section>
+
+          <section className="java-plan-card mt-4">
+            <div className="java-plan-head">
+              <h2>How Students Should Use This</h2>
+              <p>Keep the flow simple and practical.</p>
+            </div>
+            <div className="row g-3">
+              {[
+                "Ask one theory question in the PDF box.",
+                "Open the related notes or assignment.",
+                "Write the answer in your own words.",
+                "Revise again from the GTU paper before exam.",
+              ].map((item, index) => (
+                <div className="col-md-6" key={item}>
+                  <div className="java-day-card">
+                    <div className="java-detail-label">
+                      <NotebookPen size={16} />
+                      Step {index + 1}
+                    </div>
+                    <p>{item}</p>
                   </div>
                 </div>
               ))}
