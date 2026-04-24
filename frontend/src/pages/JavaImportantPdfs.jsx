@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { Download, EqualApproximately, FileText } from "lucide-react";
+import { Download, EqualApproximately, FileText, LibraryBig } from "lucide-react";
 import Sidebar from "../components/Sidebar";
 import History from "../components/History";
 import useSession from "../utils/useSession";
@@ -42,7 +42,16 @@ const JavaImportantPdfs = () => {
         <div className="container java-practice-shell">
           <section className="java-simple-header mb-4">
             <div className="java-header-row">
-              <h1 className="java-hero-title">Important PDFs</h1>
+              <div>
+                <span className="java-hero-pill mb-2">
+                  <LibraryBig size={14} />
+                  Java Library
+                </span>
+                <h1 className="java-hero-title">Important PDFs</h1>
+                <p className="java-page-subtitle">
+                  Core notes and GTU paper for fast revision.
+                </p>
+              </div>
               <div className="java-header-actions">
                 <button
                   className="btn btn-outline-light btn-sm"
@@ -61,13 +70,16 @@ const JavaImportantPdfs = () => {
           </section>
 
           <section className="java-plan-card">
-            <div className="row g-3">
+            <div className="row g-3 java-library-grid">
               {javaResourcePack.map((item) => (
                 <div className="col-md-6 col-xl-4" key={item.fileName}>
-                  <div className="java-day-card">
+                  <article className="java-doc-card">
+                    <div className="java-doc-top">
+                      <span className="java-doc-type">{item.type}</span>
+                    </div>
                     <div className="java-detail-label">
                       <FileText size={16} />
-                      {item.type}
+                      Important material
                     </div>
                     <h3>{item.title}</h3>
                     <p>{item.use}</p>
@@ -75,10 +87,11 @@ const JavaImportantPdfs = () => {
                     <a
                       className="btn btn-cs btn-sm java-download-btn"
                       href={getDownloadUrl(item.fileName)}
+                      download
                     >
                       <Download size={14} /> Download PDF
                     </a>
-                  </div>
+                  </article>
                 </div>
               ))}
             </div>

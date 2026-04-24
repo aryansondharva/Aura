@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { Download, EqualApproximately, FileCode2 } from "lucide-react";
+import { ClipboardList, Download, EqualApproximately, FileCode2 } from "lucide-react";
 import Sidebar from "../components/Sidebar";
 import History from "../components/History";
 import useSession from "../utils/useSession";
@@ -42,7 +42,16 @@ const JavaAssignments = () => {
         <div className="container java-practice-shell">
           <section className="java-simple-header mb-4">
             <div className="java-header-row">
-              <h1 className="java-hero-title">Assignments</h1>
+              <div>
+                <span className="java-hero-pill mb-2">
+                  <ClipboardList size={14} />
+                  Practice Zone
+                </span>
+                <h1 className="java-hero-title">Assignments</h1>
+                <p className="java-page-subtitle">
+                  Assignment and practical files with direct download.
+                </p>
+              </div>
               <div className="java-header-actions">
                 <button
                   className="btn btn-outline-light btn-sm"
@@ -61,13 +70,16 @@ const JavaAssignments = () => {
           </section>
 
           <section className="java-plan-card">
-            <div className="row g-3">
+            <div className="row g-3 java-library-grid">
               {javaPracticeAssets.map((item) => (
                 <div className="col-md-6 col-xl-4" key={item.fileName}>
-                  <div className="java-asset-card">
+                  <article className="java-doc-card">
+                    <div className="java-doc-top">
+                      <span className="java-doc-type">{item.badge}</span>
+                    </div>
                     <div className="java-detail-label">
                       <FileCode2 size={16} />
-                      {item.badge}
+                      Assignment material
                     </div>
                     <h3>{item.title}</h3>
                     <p>{item.note}</p>
@@ -75,10 +87,11 @@ const JavaAssignments = () => {
                     <a
                       className="btn btn-cs btn-sm java-download-btn"
                       href={getDownloadUrl(item.fileName)}
+                      download
                     >
                       <Download size={14} /> Download PDF
                     </a>
-                  </div>
+                  </article>
                 </div>
               ))}
             </div>
