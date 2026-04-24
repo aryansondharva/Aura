@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import ReactMarkdown from "react-markdown";
 import {
   EqualApproximately,
   Lock,
@@ -158,7 +159,36 @@ const JavaPractice = () => {
                   <MessageSquareQuote size={16} />
                   Answer
                 </div>
-                <p style={{ whiteSpace: "pre-wrap" }}>{javaAnswer}</p>
+                <div className="java-answer-markdown">
+                  <ReactMarkdown
+                    components={{
+                      code({ inline, className, children, ...props }) {
+                        const language = className?.replace("language-", "") || "code";
+
+                        if (!inline) {
+                          return (
+                            <div className="java-code-shell">
+                              <div className="java-code-head">{language.toUpperCase()}</div>
+                              <pre className="java-code-pre">
+                                <code className={className} {...props}>
+                                  {children}
+                                </code>
+                              </pre>
+                            </div>
+                          );
+                        }
+
+                        return (
+                          <code className="java-inline-code" {...props}>
+                            {children}
+                          </code>
+                        );
+                      },
+                    }}
+                  >
+                    {javaAnswer}
+                  </ReactMarkdown>
+                </div>
                 {answerSources.length > 0 ? (
                   <div className="java-source-list">
                     {answerSources.map((source) => (

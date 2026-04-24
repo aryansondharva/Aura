@@ -94,6 +94,26 @@ class JavaPracticeService {
     return score;
   }
 
+  isCodeStyleQuestion(question) {
+    const q = question.toLowerCase();
+    const codeHints = [
+      'code',
+      'program',
+      'write',
+      'syntax',
+      'example',
+      'implement',
+      'output',
+      'run',
+      'compile',
+      'method',
+      'class',
+      'java',
+    ];
+
+    return codeHints.some((hint) => q.includes(hint));
+  }
+
   async loadDocuments() {
     const files = await this.getPdfFiles();
 
@@ -168,11 +188,29 @@ class JavaPracticeService {
       )
       .join('\n\n');
 
+    const isCodeQuestion = this.isCodeStyleQuestion(trimmedQuestion);
+
+    const formattingInstruction = isCodeQuestion
+      ? `If the question asks for code/program/output, follow this exact markdown structure:
+## Code
+\`\`\`java
+// code here
+\`\`\`
+## Output
+\`\`\`text
+// expected output here
+\`\`\`
+## Explanation
+- short explanation in 2-4 points
+If output is not clearly present in PDFs, write "Output not explicitly given in the provided PDFs." in Output block.`
+      : `Use clear markdown with short headings and concise explanation.`;
+
     const systemPrompt = `You are Aura's Java Practice assistant for GTU students.
 Answer ONLY from the provided PDF context.
 If the answer is not clearly supported by the context, say that it is not available in the provided PDFs.
 Do not use outside knowledge.
 Keep the answer clear and study-friendly.
+${formattingInstruction}
 End with a short line starting with "Sources:" and list the PDF filenames you relied on.`;
 
     const prompt = `Question: ${trimmedQuestion}

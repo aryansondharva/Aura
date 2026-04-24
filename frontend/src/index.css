@@ -853,6 +853,74 @@ textarea::-webkit-input-placeholder {
   background: linear-gradient(160deg, rgba(13, 13, 13, 0.95), rgba(28, 20, 5, 0.92));
 }
 
+.java-answer-markdown h1,
+.java-answer-markdown h2,
+.java-answer-markdown h3 {
+  font-size: 1.02rem;
+  margin: 10px 0 8px;
+}
+
+.java-answer-markdown p {
+  color: rgba(255, 255, 255, 0.88);
+  margin-bottom: 10px;
+  line-height: 1.6;
+}
+
+.java-answer-markdown ul {
+  padding-left: 18px;
+  margin: 0 0 12px;
+}
+
+.java-answer-markdown li {
+  list-style: disc;
+  margin-bottom: 6px;
+  color: rgba(255, 255, 255, 0.88);
+}
+
+.java-code-shell {
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  margin: 10px 0 12px;
+  background: #1e1e1e;
+}
+
+.java-code-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  color: #c7c7c7;
+  background: #2d2d2d;
+  padding: 7px 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.java-code-pre {
+  margin: 0;
+  padding: 12px 14px;
+  overflow-x: auto;
+  background: #1e1e1e;
+}
+
+.java-code-pre code {
+  font-family: "Consolas", "Fira Code", "Courier New", monospace;
+  color: #d4d4d4;
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+.java-inline-code {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  padding: 2px 6px;
+  font-family: "Consolas", "Fira Code", "Courier New", monospace;
+  color: #f5cc7a;
+  font-size: 0.86rem;
+}
+
 .java-native-stat {
   border-radius: 16px;
   border: 1px solid rgba(255, 255, 255, 0.1);
