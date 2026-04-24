@@ -21,6 +21,7 @@ import SharedAnalysis from "./pages/SharedAnalysis";
 import JavaPractice from "./pages/JavaPractice";
 import JavaImportantPdfs from "./pages/JavaImportantPdfs";
 import JavaAssignments from "./pages/JavaAssignments";
+import SevenMarksJava from "./pages/SevenMarksJava";
 
 function App() {
   return (
@@ -45,6 +46,7 @@ function App() {
         <Route path="/java-practice" element={<JavaPractice />} />
         <Route path="/java-important-pdfs" element={<JavaImportantPdfs />} />
         <Route path="/java-assignments" element={<JavaAssignments />} />
+        <Route path="/7_marks_java" element={<SevenMarksJava />} />
         <Route path="/shared/:token" element={<SharedAnalysis />} />
         
       </Routes>

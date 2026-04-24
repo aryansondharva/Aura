@@ -110,6 +110,12 @@ const JavaPractice = () => {
               >
                 Assignments
               </button>
+              <button
+                className="btn btn-outline-light btn-sm java-native-navbtn"
+                onClick={() => navigate("/7_marks_java")}
+              >
+                7 Marks
+              </button>
             </div>
           </section>
 
