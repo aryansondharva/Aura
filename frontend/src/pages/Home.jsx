@@ -47,6 +47,9 @@ const Home = () => {
                   <Link to="/signin" className="btn btn-cs me-3">
                     Sign Up Today
                   </Link>
+                  <Link to="/java-practice" className="btn btn-cs">
+                    JAVA
+                  </Link>
                 </div>
               </div>
             </div>
