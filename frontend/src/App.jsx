@@ -42,9 +42,9 @@ function App() {
         <Route path="/studymetrics" element={<Study_Metrics />} />
         <Route path="/settings" element={<Settings />} />
         <Route path="/exam-readiness" element={<ProtectedRoute><ExamReadiness /></ProtectedRoute>} />
-        <Route path="/java-practice" element={<ProtectedRoute><JavaPractice /></ProtectedRoute>} />
-        <Route path="/java-important-pdfs" element={<ProtectedRoute><JavaImportantPdfs /></ProtectedRoute>} />
-        <Route path="/java-assignments" element={<ProtectedRoute><JavaAssignments /></ProtectedRoute>} />
+        <Route path="/java-practice" element={<JavaPractice />} />
+        <Route path="/java-important-pdfs" element={<JavaImportantPdfs />} />
+        <Route path="/java-assignments" element={<JavaAssignments />} />
         <Route path="/shared/:token" element={<SharedAnalysis />} />
         
       </Routes>
