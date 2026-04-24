@@ -88,31 +88,3 @@ export const javaPracticeAssets = [
     note: "Keep this for final revision and extra practice.",
   },
 ];
-
-export const javaWeeklyPlan = [
-  {
-    day: "Day 1",
-    focus: "Java Basics",
-    action: "Read Chapter 1 and ask 3 questions from the PDF box.",
-  },
-  {
-    day: "Day 2",
-    focus: "OOP Concepts",
-    action: "Revise inheritance, polymorphism, abstraction, and encapsulation.",
-  },
-  {
-    day: "Day 3",
-    focus: "Arrays, Strings, Exceptions",
-    action: "Practice short answers and solve one assignment question.",
-  },
-  {
-    day: "Day 4",
-    focus: "Collections + Practicals",
-    action: "Revise collection notes and prepare one practical program.",
-  },
-  {
-    day: "Day 5",
-    focus: "GTU Exam Revision",
-    action: "Use the question paper and revise weak topics from the PDFs.",
-  },
-];
