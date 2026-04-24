@@ -737,6 +737,19 @@ textarea::-webkit-input-placeholder {
   padding: 24px;
 }
 
+.java-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-lg);
+}
+
+.java-header-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
 .java-hero-pill,
 .java-unit-chip,
 .java-day-badge {
@@ -905,6 +918,13 @@ textarea::-webkit-input-placeholder {
   word-break: break-word;
 }
 
+.java-download-btn {
+  margin-top: var(--space-lg);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
 @media (max-width: 992px) {
 }
 
@@ -915,6 +935,11 @@ textarea::-webkit-input-placeholder {
 
   .java-ask-input-row {
     flex-direction: column;
+  }
+
+  .java-header-row {
+    flex-direction: column;
+    align-items: flex-start;
   }
 
   .java-hero-title {

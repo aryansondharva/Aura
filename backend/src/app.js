@@ -61,6 +61,12 @@ app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 // Configure static file serving for uploads
 app.use('/uploads', express.static(uploadsDir));
 
+// Expose local OOP PDF folder for direct frontend links
+const javaPdfDir = path.resolve(__dirname, '../../OBJECT ORIENTED PROGRAMMING');
+if (fs.existsSync(javaPdfDir)) {
+  app.use('/java-pdfs', express.static(javaPdfDir));
+}
+
 // Health check endpoint
 app.get('/health', (req, res) => {
   res.status(200).json({

@@ -19,6 +19,8 @@ import VoiceAssistant from "./components/VoiceAssistant";
 import ExamReadiness from "./pages/ExamReadiness";
 import SharedAnalysis from "./pages/SharedAnalysis";
 import JavaPractice from "./pages/JavaPractice";
+import JavaImportantPdfs from "./pages/JavaImportantPdfs";
+import JavaAssignments from "./pages/JavaAssignments";
 
 function App() {
   return (
@@ -41,6 +43,8 @@ function App() {
         <Route path="/settings" element={<Settings />} />
         <Route path="/exam-readiness" element={<ProtectedRoute><ExamReadiness /></ProtectedRoute>} />
         <Route path="/java-practice" element={<ProtectedRoute><JavaPractice /></ProtectedRoute>} />
+        <Route path="/java-important-pdfs" element={<ProtectedRoute><JavaImportantPdfs /></ProtectedRoute>} />
+        <Route path="/java-assignments" element={<ProtectedRoute><JavaAssignments /></ProtectedRoute>} />
         <Route path="/shared/:token" element={<SharedAnalysis />} />
         
       </Routes>

@@ -1,9 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  BookOpenCheck,
   EqualApproximately,
-  GraduationCap,
   LoaderCircle,
   MessageSquareQuote,
   Search,
@@ -13,8 +11,6 @@ import History from "../components/History";
 import useSession from "../utils/useSession";
 import {
   javaPracticeStats,
-  javaPracticeAssets,
-  javaResourcePack,
 } from "../data/javaPractice";
 
 const JavaPractice = () => {
@@ -91,11 +87,23 @@ const JavaPractice = () => {
       <div className="chat-content flex-grow-1 p-4 text-white d-flex flex-column">
         <div className="container java-practice-shell">
           <section className="java-simple-header mb-4">
-            <span className="java-hero-pill">
-              <GraduationCap size={16} />
-              Java Practice
-            </span>
-            <h1 className="java-hero-title">Ask from OOP PDFs</h1>
+            <div className="java-header-row">
+              <h1 className="java-hero-title">Ask from OOP PDFs</h1>
+              <div className="java-header-actions">
+                <button
+                  className="btn btn-cs btn-sm"
+                  onClick={() => navigate("/java-important-pdfs")}
+                >
+                  JAVA
+                </button>
+                <button
+                  className="btn btn-outline-light btn-sm"
+                  onClick={() => navigate("/java-assignments")}
+                >
+                  Assignments
+                </button>
+              </div>
+            </div>
           </section>
 
           <section className="java-ask-panel mb-4">
@@ -167,44 +175,6 @@ const JavaPractice = () => {
                 </div>
               </div>
             ))}
-          </section>
-
-          <section className="java-plan-card mb-4">
-            <div className="java-plan-head">
-              <h2>Important PDFs</h2>
-            </div>
-
-            <div className="row g-3">
-              {javaResourcePack.map((item) => (
-                <div className="col-md-6 col-xl-4" key={item.fileName}>
-                  <div className="java-day-card">
-                    <span className="java-day-badge">{item.type}</span>
-                    <h3>{item.title}</h3>
-                    <p>{item.use}</p>
-                    <div className="java-file-tag">{item.fileName}</div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </section>
-
-          <section className="java-plan-card">
-            <div className="java-plan-head">
-              <h2>Assignments</h2>
-            </div>
-
-            <div className="row g-3">
-              {javaPracticeAssets.map((item) => (
-                <div className="col-md-6 col-xl-3" key={item.fileName}>
-                  <div className="java-asset-card">
-                    <span className="java-asset-badge">{item.badge}</span>
-                    <h3>{item.title}</h3>
-                    <p>{item.note}</p>
-                    <div className="java-file-tag">{item.fileName}</div>
-                  </div>
-                </div>
-                ))}
-              </div>
           </section>
         </div>
 
